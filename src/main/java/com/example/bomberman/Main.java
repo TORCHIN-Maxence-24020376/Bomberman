@@ -11,11 +11,11 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/com/example/bomberman/game-view.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("game-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 800, 600);
 
             // Ajouter CSS seulement s'il existe
-            var cssResource = getClass().getResource("/com/example/bomberman/styles.css");
+            var cssResource = getClass().getResource("styles.css");
             if (cssResource != null) {
                 scene.getStylesheets().add(cssResource.toExternalForm());
             }
