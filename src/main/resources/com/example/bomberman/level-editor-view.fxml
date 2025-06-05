@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Font?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.Canvas?>
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.bomberman.LevelEditorController"
+            styleClass="level-editor">
+
+    <!-- En-tête avec titre et boutons principaux -->
+    <top>
+        <VBox styleClass="editor-header">
+            <padding>
+                <Insets top="10" bottom="10" left="20" right="20" />
+            </padding>
+
+            <HBox alignment="CENTER" spacing="20">
+                <Label text="Éditeur de Niveaux" styleClass="editor-title">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <Button fx:id="newButton" text="Nouveau" styleClass="action-button" />
+                <Button fx:id="loadButton" text="Charger" styleClass="action-button" />
+                <Button fx:id="saveButton" text="Sauvegarder" styleClass="primary-button" />
+                <Button fx:id="testButton" text="Tester" styleClass="secondary-button" />
+            </HBox>
+
+            <!-- Barre d'outils -->
+            <HBox alignment="CENTER" spacing="15" styleClass="toolbar">
+                <padding>
+                    <Insets top="10" />
+                </padding>
+
+                <Label text="Outils:" styleClass="toolbar-label">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Label>
+
+                <ToggleGroup fx:id="toolGroup" />
+
+                <RadioButton fx:id="emptyTool" text="Vide" toggleGroup="$toolGroup"
+                             styleClass="tool-button" />
+                <RadioButton fx:id="wallTool" text="Mur" toggleGroup="$toolGroup"
+                             styleClass="tool-button" />
+                <RadioButton fx:id="destructibleWallTool" text="Mur Destructible" toggleGroup="$toolGroup"
+                             styleClass="tool-button" />
+                <RadioButton fx:id="player1SpawnTool" text="Spawn J1" toggleGroup="$toolGroup"
+                             styleClass="tool-button" />
+                <RadioButton fx:id="player2SpawnTool" text="Spawn J2" toggleGroup="$toolGroup"
+                             styleClass="tool-button" />
+
+                <Separator orientation="VERTICAL" />
+
+                <Label text="Dimensions:" styleClass="toolbar-label" />
+                <Label text="Largeur:" />
+                <Spinner fx:id="widthSpinner" prefWidth="80" styleClass="dimension-spinner" />
+                <Label text="Hauteur:" />
+                <Spinner fx:id="heightSpinner" prefWidth="80" styleClass="dimension-spinner" />
+                <Label fx:id="dimensionsLabel" text="Dimensions: 15 x 13" styleClass="info-label" />
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- Centre avec le canvas d'édition -->
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="editor-scroll">
+            <VBox alignment="CENTER" styleClass="canvas-container">
+                <padding>
+                    <Insets top="20" bottom="20" left="20" right="20" />
+                </padding>
+
+                <Canvas fx:id="editorCanvas" width="450" height="390"
+                        styleClass="editor-canvas" />
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- Panneau latéral avec aide et légende -->
+    <right>
+        <VBox spacing="15" prefWidth="250" styleClass="help-panel">
+            <padding>
+                <Insets top="20" bottom="20" left="15" right="15" />
+            </padding>
+
+            <Label text="Aide" styleClass="panel-title">
+                <font>
+                    <Font name="System Bold" size="16.0" />
+                </font>
+            </Label>
+
+            <Separator />
+
+            <!-- Instructions -->
+            <VBox spacing="10" styleClass="instructions">
+                <Label text="Instructions:" styleClass="section-subtitle">
+                    <font>
+                        <Font name="System Bold" size="12.0" />
+                    </font>
+                </Label>
+
+                <Label text="• Sélectionnez un outil dans la barre d'outils"
+                       styleClass="instruction-text" wrapText="true" />
+                <Label text="• Cliquez sur le canvas pour placer/modifier"
+                       styleClass="instruction-text" wrapText="true" />
+                <Label text="• Maintenez et glissez pour peindre"
+                       styleClass="instruction-text" wrapText="true" />
+                <Label text="• Les bordures et murs fixes ne peuvent pas être modifiés"
+                       styleClass="instruction-text" wrapText="true" />
+            </VBox>
+
+            <Separator />
+
+            <!-- Légende -->
+            <VBox spacing="10" styleClass="legend">
+                <Label text="Légende:" styleClass="section-subtitle">
+                    <font>
+                        <Font name="System Bold" size="12.0" />
+                    </font>
+                </Label>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="🟩" styleClass="legend-icon" />
+                    <Label text="Case vide" styleClass="legend-text" />
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="⬛" styleClass="legend-icon" />
+                    <Label text="Mur indestructible" styleClass="legend-text" />
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="🟫" styleClass="legend-icon" />
+                    <Label text="Mur destructible" styleClass="legend-text" />
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="🔵" styleClass="legend-icon" />
+                    <Label text="Spawn Joueur 1" styleClass="legend-text" />
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="🔴" styleClass="legend-icon" />
+                    <Label text="Spawn Joueur 2" styleClass="legend-text" />
+                </HBox>
+            </VBox>
+
+            <Separator />
+
+            <!-- Conseils -->
+            <VBox spacing="10" styleClass="tips">
+                <Label text="Conseils:" styleClass="section-subtitle">
+                    <font>
+                        <Font name="System Bold" size="12.0" />
+                    </font>
+                </Label>
+
+                <Label text="• Gardez des chemins ouverts entre les zones"
+                       styleClass="tip-text" wrapText="true" />
+                <Label text="• Placez des murs destructibles pour créer des power-ups"
+                       styleClass="tip-text" wrapText="true" />
+                <Label text="• Évitez les zones trop ouvertes ou fermées"
+                       styleClass="tip-text" wrapText="true" />
+                <Label text="• Testez votre niveau avant de le sauvegarder"
+                       styleClass="tip-text" wrapText="true" />
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Informations système -->
+            <VBox spacing="5" styleClass="system-info">
+                <Label text="Format de fichier:" styleClass="info-subtitle" />
+                <Label text="• Extension: .level" styleClass="info-detail" />
+                <Label text="• Format: CSV" styleClass="info-detail" />
+                <Label text="• Compatible avec le jeu" styleClass="info-detail" />
+            </VBox>
+        </VBox>
+    </right>
+
+</BorderPane>
