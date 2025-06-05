@@ -351,5 +351,9 @@ public class Player {
     public boolean hasSkull() { return hasSkull; }
 
     public PlayerProfile getProfile() { return profile; }
-    public void setProfile(PlayerProfile profile) { this.profile = profile; }
+    public void setProfile(PlayerProfile profile) {
+        this.profile = profile;
+        System.out.println("Profil assigné au joueur " + playerId + ": " +
+                (profile != null ? profile.getFullName() : "Aucun"));
+    }
 }

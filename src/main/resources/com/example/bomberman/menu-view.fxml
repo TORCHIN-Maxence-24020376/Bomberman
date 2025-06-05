@@ -1,126 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.text.Font?>
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.bomberman.MainMenuController"
-            styleClass="main-menu">
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Button?>
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.bomberman.MainMenuController"
+      alignment="CENTER" spacing="20" styleClass="main-menu">
 
-    <!-- En-tête avec titre -->
-    <top>
-        <VBox alignment="CENTER" styleClass="header">
-            <padding>
-                <Insets top="20" bottom="20" left="20" right="20" />
-            </padding>
+    <padding>
+        <Insets top="50" bottom="50" left="50" right="50" />
+    </padding>
 
-            <Label fx:id="titleLabel" text="SUPER BOMBERMAN" styleClass="main-title">
-                <font>
-                    <Font name="System Bold" size="48.0" />
-                </font>
-            </Label>
+    <!-- Titre -->
+    <Label text="SUPER BOMBERMAN" styleClass="main-title">
+        <font>
+            <Font name="System Bold" size="36.0" />
+        </font>
+    </Label>
 
-            <Label text="Version Améliorée" styleClass="subtitle">
-                <font>
-                    <Font size="16.0" />
-                </font>
-            </Label>
-        </VBox>
-    </top>
+    <Label text="Version Améliorée" styleClass="subtitle">
+        <font>
+            <Font size="16.0" />
+        </font>
+    </Label>
 
-    <!-- Centre avec sélection des joueurs et menu -->
-    <center>
-        <VBox fx:id="mainMenuPane" alignment="CENTER" spacing="20" styleClass="menu-content">
-            <padding>
-                <Insets top="20" bottom="20" left="40" right="40" />
-            </padding>
+    <!-- Espace -->
+    <Region prefHeight="20" />
 
-            <!-- Sélection des joueurs -->
-            <VBox alignment="CENTER" spacing="15" styleClass="player-selection">
-                <Label text="Sélection des Joueurs" styleClass="section-title">
-                    <font>
-                        <Font name="System Bold" size="20.0" />
-                    </font>
-                </Label>
+    <!-- Sélection des joueurs -->
+    <VBox alignment="CENTER" spacing="15" styleClass="player-selection">
+        <Label text="Sélection des Joueurs" styleClass="section-title">
+            <font>
+                <Font name="System Bold" size="18.0" />
+            </font>
+        </Label>
 
-                <HBox alignment="CENTER" spacing="30">
-                    <VBox alignment="CENTER" spacing="5">
-                        <Label text="Joueur 1" styleClass="player-label" />
-                        <ComboBox fx:id="player1Combo" prefWidth="200" styleClass="player-combo" />
-                    </VBox>
-
-                    <Label text="VS" styleClass="vs-label">
-                        <font>
-                            <Font name="System Bold" size="24.0" />
-                        </font>
-                    </Label>
-
-                    <VBox alignment="CENTER" spacing="5">
-                        <Label text="Joueur 2" styleClass="player-label" />
-                        <ComboBox fx:id="player2Combo" prefWidth="200" styleClass="player-combo" />
-                    </VBox>
-                </HBox>
+        <HBox alignment="CENTER" spacing="20">
+            <VBox alignment="CENTER" spacing="5">
+                <Label text="Joueur 1" />
+                <ComboBox fx:id="player1Combo" prefWidth="150" />
             </VBox>
 
-            <!-- Boutons du menu principal -->
-            <VBox alignment="CENTER" spacing="15" styleClass="main-buttons">
-                <Button fx:id="playButton" text="JOUER" prefWidth="250" prefHeight="50"
-                        styleClass="primary-button">
-                    <font>
-                        <Font name="System Bold" size="18.0" />
-                    </font>
-                </Button>
-
-                <Button fx:id="profilesButton" text="Gestion des Profils" prefWidth="250" prefHeight="40"
-                        styleClass="secondary-button">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Button>
-
-                <Button fx:id="levelEditorButton" text="Éditeur de Niveaux" prefWidth="250" prefHeight="40"
-                        styleClass="secondary-button">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Button>
-
-                <Button fx:id="settingsButton" text="Paramètres" prefWidth="250" prefHeight="40"
-                        styleClass="secondary-button">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Button>
-
-                <Button fx:id="quitButton" text="Quitter" prefWidth="250" prefHeight="40"
-                        styleClass="danger-button">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Button>
-            </VBox>
-        </VBox>
-    </center>
-
-    <!-- Pied de page avec informations -->
-    <bottom>
-        <HBox alignment="CENTER" styleClass="footer">
-            <padding>
-                <Insets top="10" bottom="10" left="20" right="20" />
-            </padding>
-
-            <Label text="Contrôles: Joueur 1 (ZQSD + A) | Joueur 2 (Flèches + Espace)"
-                   styleClass="controls-info">
+            <Label text="VS">
                 <font>
-                    <Font size="12.0" />
+                    <Font name="System Bold" size="18.0" />
                 </font>
             </Label>
+
+            <VBox alignment="CENTER" spacing="5">
+                <Label text="Joueur 2" />
+                <ComboBox fx:id="player2Combo" prefWidth="150" />
+            </VBox>
         </HBox>
-    </bottom>
+    </VBox>
 
-</BorderPane>
+    <!-- Espace -->
+    <Region prefHeight="20" />
+
+    <!-- Boutons du menu -->
+    <VBox alignment="CENTER" spacing="15">
+        <Button fx:id="playButton" text="JOUER" prefWidth="200" prefHeight="40"
+                styleClass="primary-button">
+            <font>
+                <Font name="System Bold" size="16.0" />
+            </font>
+        </Button>
+
+        <Button fx:id="profilesButton" text="Gestion des Profils" prefWidth="200" prefHeight="35"
+                styleClass="secondary-button" />
+
+        <Button fx:id="levelEditorButton" text="Éditeur de Niveaux" prefWidth="200" prefHeight="35"
+                styleClass="secondary-button" />
+
+        <Button fx:id="settingsButton" text="Paramètres" prefWidth="200" prefHeight="35"
+                styleClass="secondary-button" />
+
+        <Button fx:id="quitButton" text="Quitter" prefWidth="200" prefHeight="35"
+                styleClass="danger-button" />
+    </VBox>
+
+    <!-- Espace -->
+    <Region VBox.vgrow="ALWAYS" />
+
+    <!-- Informations -->
+    <Label text="Contrôles: Joueur 1 (ZQSD + A) | Joueur 2 (Flèches + Espace)"
+           styleClass="controls-info">
+        <font>
+            <Font size="11.0" />
+        </font>
+    </Label>
+
+</VBox>

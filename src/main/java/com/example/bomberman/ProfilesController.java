@@ -179,8 +179,8 @@ public class ProfilesController implements Initializable {
      */
     private void updateButtonStates() {
         boolean hasSelection = selectedProfile != null;
-        editButton.setDisabled(!hasSelection);
-        deleteButton.setDisabled(!hasSelection);
+        editButton.setDisable(!hasSelection);
+        deleteButton.setDisable(!hasSelection);
     }
 
     /**
