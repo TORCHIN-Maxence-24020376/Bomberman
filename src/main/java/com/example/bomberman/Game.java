@@ -5,8 +5,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 public class Game {
     private static final int BOARD_WIDTH = 15;
@@ -18,9 +20,12 @@ public class Game {
     private Player player2;
     private List<Bomb> bombs;
     private boolean gameRunning;
-    private Player currentPlayer;
+
+    // Pour gérer les touches pressées simultanément
+    private Set<KeyCode> pressedKeys;
 
     public Game() {
+        pressedKeys = new HashSet<>();
         initializeGame();
     }
 
@@ -30,83 +35,61 @@ public class Game {
         player2 = new Player(BOARD_WIDTH - 2, BOARD_HEIGHT - 2, Color.RED, 2);
         bombs = new ArrayList<>();
         gameRunning = true;
-        currentPlayer = player1;
     }
 
     public void handleKeyPressed(KeyCode key) {
         if (!gameRunning) return;
 
-        switch (key) {
-            // Joueur 1 (WASD)
-            case W -> {
-                if (currentPlayer == player1) {
-                    movePlayer(player1, 0, -1);
-                    switchPlayer();
-                }
-            }
-            case S -> {
-                if (currentPlayer == player1) {
-                    movePlayer(player1, 0, 1);
-                    switchPlayer();
-                }
-            }
-            case A -> {
-                if (currentPlayer == player1) {
-                    movePlayer(player1, -1, 0);
-                    switchPlayer();
-                }
-            }
-            case D -> {
-                if (currentPlayer == player1) {
-                    movePlayer(player1, 1, 0);
-                    switchPlayer();
-                }
-            }
-            case Q -> {
-                if (currentPlayer == player1) {
-                    placeBomb(player1);
-                    switchPlayer();
-                }
-            }
-            // Joueur 2 (Flèches)
-            case UP -> {
-                if (currentPlayer == player2) {
-                    movePlayer(player2, 0, -1);
-                    switchPlayer();
-                }
-            }
-            case DOWN -> {
-                if (currentPlayer == player2) {
-                    movePlayer(player2, 0, 1);
-                    switchPlayer();
-                }
-            }
-            case LEFT -> {
-                if (currentPlayer == player2) {
-                    movePlayer(player2, -1, 0);
-                    switchPlayer();
-                }
-            }
-            case RIGHT -> {
-                if (currentPlayer == player2) {
-                    movePlayer(player2, 1, 0);
-                    switchPlayer();
-                }
-            }
-            case SPACE -> {
-                if (currentPlayer == player2) {
-                    placeBomb(player2);
-                    switchPlayer();
-                }
-            }
+        pressedKeys.add(key);
+
+        // Gestion des bombes (action instantanée)
+        if (key == KeyCode.A) {
+            placeBomb(player1);
+        } else if (key == KeyCode.SPACE) {
+            placeBomb(player2);
         }
     }
 
     public void handleKeyReleased(KeyCode key) {
-        // Pas d'action pour le moment
+        pressedKeys.remove(key);
+    }
+
+    // Nouvelle méthode pour traiter les mouvements en continu
+    public void processMovement() {
+        if (!gameRunning) return;
+
+        // Joueur 1 (ZQSD)
+        if (pressedKeys.contains(KeyCode.Z)) {
+            movePlayer(player1, 0, -1);
+        }
+        if (pressedKeys.contains(KeyCode.S)) {
+            movePlayer(player1, 0, 1);
+        }
+        if (pressedKeys.contains(KeyCode.Q)) {
+            movePlayer(player1, -1, 0);
+        }
+        if (pressedKeys.contains(KeyCode.D)) {
+            movePlayer(player1, 1, 0);
+        }
+
+        // Joueur 2 (Flèches)
+        if (pressedKeys.contains(KeyCode.UP)) {
+            movePlayer(player2, 0, -1);
+        }
+        if (pressedKeys.contains(KeyCode.DOWN)) {
+            movePlayer(player2, 0, 1);
+        }
+        if (pressedKeys.contains(KeyCode.LEFT)) {
+            movePlayer(player2, -1, 0);
+        }
+        if (pressedKeys.contains(KeyCode.RIGHT)) {
+            movePlayer(player2, 1, 0);
+        }
     }
 
     private void movePlayer(Player player, int dx, int dy) {
+        if (!player.canMove()) return; // Vérifier si le joueur peut bouger
+
         int newX = player.getX() + dx;
         int newY = player.getY() + dy;
 
@@ -124,11 +107,10 @@ public class Game {
         }
     }
 
-    private void switchPlayer() {
-        currentPlayer = (currentPlayer == player1) ? player2 : player1;
-    }
-
     public void update() {
+        // Traiter les mouvements en continu
+        processMovement();
+
         // Mettre à jour les bombes
         Iterator<Bomb> bombIterator = bombs.iterator();
         while (bombIterator.hasNext()) {
@@ -221,12 +203,9 @@ public class Game {
             bomb.render(gc, TILE_SIZE);
         }
 
-        // Indicateur du joueur actuel
-        gc.setFill(Color.WHITE);
-        gc.fillText("Tour du joueur " + currentPlayer.getPlayerId(), 10, 20);
-
         // Afficher les vies
-        gc.fillText("Joueur 1 - Vies: " + player1.getLives(), 10, 40);
-        gc.fillText("Joueur 2 - Vies: " + player2.getLives(), 10, 60);
+        gc.setFill(Color.WHITE);
+        gc.fillText("Joueur 1 (ZQSD + A) - Vies: " + player1.getLives(), 10, 20);
+        gc.fillText("Joueur 2 (Flèches + Espace) - Vies: " + player2.getLives(), 10, 40);
     }
 }

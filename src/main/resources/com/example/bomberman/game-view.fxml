@@ -22,7 +22,7 @@
 
     <HBox alignment="CENTER" spacing="10.0" styleClass="controls">
       <children>
-        <Label text="Joueur 1: WASD + Q (bombe)" styleClass="control-text" />
+        <Label text="Joueur 1: ZQSD + A (bombe)" styleClass="control-text" />
         <Label text="|" />
         <Label text="Joueur 2: Flèches + Espace (bombe)" styleClass="control-text" />
       </children>

@@ -12,6 +12,10 @@ public class Player {
     private int currentBombs;
     private int bombRange;
 
+    // Pour contrôler la vitesse de déplacement
+    private long lastMoveTime;
+    private static final long MOVE_DELAY = 150; // millisecondes entre chaque mouvement
+
     public Player(int x, int y, Color color, int playerId) {
         this.x = x;
         this.y = y;
@@ -21,6 +25,7 @@ public class Player {
         this.maxBombs = 1;
         this.currentBombs = 0;
         this.bombRange = 2;
+        this.lastMoveTime = 0;
     }
 
     public void render(GraphicsContext gc, int tileSize) {
@@ -35,6 +40,18 @@ public class Player {
         // Numéro du joueur
         gc.setFill(Color.WHITE);
         gc.fillText(String.valueOf(playerId), x * tileSize + tileSize/2 - 5, y * tileSize + tileSize/2 + 5);
+    }
+
+    public boolean canMove() {
+        return System.currentTimeMillis() - lastMoveTime >= MOVE_DELAY;
+    }
+
+    public void setPosition(int newX, int newY) {
+        if (canMove()) {
+            this.x = newX;
+            this.y = newY;
+            this.lastMoveTime = System.currentTimeMillis();
+        }
     }
 
     public boolean canPlaceBomb() {
@@ -67,10 +84,13 @@ public class Player {
     // Getters et Setters
     public int getX() { return x; }
     public int getY() { return y; }
-    public void setPosition(int x, int y) {
+
+    // Méthode pour forcer le changement de position (sans délai)
+    public void forcePosition(int x, int y) {
         this.x = x;
         this.y = y;
     }
+
     public Color getColor() { return color; }
     public void setColor(Color color) { this.color = color; }
     public int getPlayerId() { return playerId; }
