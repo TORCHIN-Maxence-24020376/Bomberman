@@ -7,11 +7,11 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class HelloApplication extends Application {
+public class Main extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("game-view.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("game-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 800, 600);
 
             // Ajouter CSS seulement s'il existe
