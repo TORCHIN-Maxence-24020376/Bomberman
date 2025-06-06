@@ -7,7 +7,6 @@ import com.example.bomberman.utils.SpriteLoader;
 public class FloorTile extends Tile {
 
     public FloorTile(int x, int y) {
-
         super(x, y, true, false
         );
     }

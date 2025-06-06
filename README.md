@@ -1,4 +1,12 @@
-# Bomberman
+# SAE 2.01 BOMBERMAN
 
+## Fonctionnalités
 
-hahahahaha
+## Répartition
+
+### Maxence
+models.map
+
+### Antoine
+
+### Adam

@@ -5,4 +5,6 @@ module com.example.bomberman {
     opens com.example.bomberman to javafx.fxml;
 
     exports com.example.bomberman;
+    exports com.example.bomberman.test;
+    opens com.example.bomberman.test to javafx.fxml;
 }

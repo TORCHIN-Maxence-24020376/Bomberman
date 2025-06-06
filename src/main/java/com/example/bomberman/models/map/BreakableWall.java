@@ -6,6 +6,8 @@ import com.example.bomberman.utils.SpriteLoader;
 
 public class BreakableWall extends Tile {
 
+    private boolean destroyed = false;
+
     public BreakableWall(int x, int y) {
         super(x, y, false, true);
     }
@@ -17,5 +19,13 @@ public class BreakableWall extends Tile {
             Color.ORANGE,
             32
         );
+    }
+
+    public boolean isDestroyed(){
+        return destroyed;
+    }
+
+    public void destroy() {
+        destroyed = true;
     }
 }

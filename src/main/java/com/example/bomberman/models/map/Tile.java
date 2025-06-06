@@ -1,7 +1,7 @@
 package com.example.bomberman.models.map;
 
 import javafx.scene.image.Image;
-import com.example.bomberman.models.map.GameMap
+import com.example.bomberman.models.map.GameMap;
 
 public abstract class Tile {
     protected int x, y;
@@ -31,9 +31,7 @@ public abstract class Tile {
         return y;
     }
 
-    public void destroy(){
-        // A faire
-    }
+    public void destroy(GameMap map) { }
 
     public abstract Image getSprite();
 }
