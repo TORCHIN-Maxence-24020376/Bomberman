@@ -17,8 +17,8 @@ import javafx.stage.Stage;
 public class TestGameMapFX extends Application {
 
     private static final int TILE_SIZE = 32;
-    private static final int MAP_WIDTH = 150; // Max 150
-    private static final int MAP_HEIGHT = 150;
+    private static final int MAP_WIDTH = 20; // Max 150
+    private static final int MAP_HEIGHT = 20;
 
     @Override
     public void start(Stage primaryStage) {
