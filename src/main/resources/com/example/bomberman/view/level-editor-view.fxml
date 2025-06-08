@@ -10,7 +10,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.canvas.Canvas?>
 <BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.bomberman.LevelEditorController"
+            fx:controller="com.example.bomberman.controller.LevelEditorController"
             styleClass="level-editor">
 
     <!-- En-tête avec titre et boutons principaux -->
@@ -29,6 +29,7 @@
 
                 <Region HBox.hgrow="ALWAYS" />
 
+                <Button fx:id="returnButton" text="Retour au menu" styleClass="action-button" />
                 <Button fx:id="newButton" text="Nouveau" styleClass="action-button" />
                 <Button fx:id="loadButton" text="Charger" styleClass="action-button" />
                 <Button fx:id="saveButton" text="Sauvegarder" styleClass="primary-button" />
@@ -47,19 +48,47 @@
                     </font>
                 </Label>
 
-                <ToggleGroup fx:id="toolGroup" />
+                <!-- Déclaration du ToggleGroup en dehors des nœuds visuels -->
+                <fx:define>
+                    <ToggleGroup fx:id="toolGroup" />
+                </fx:define>
 
-                <RadioButton fx:id="emptyTool" text="Vide" toggleGroup="$toolGroup"
-                             styleClass="tool-button" />
-                <RadioButton fx:id="wallTool" text="Mur" toggleGroup="$toolGroup"
-                             styleClass="tool-button" />
-                <RadioButton fx:id="destructibleWallTool" text="Mur Destructible" toggleGroup="$toolGroup"
-                             styleClass="tool-button" />
-                <RadioButton fx:id="player1SpawnTool" text="Spawn J1" toggleGroup="$toolGroup"
-                             styleClass="tool-button" />
-                <RadioButton fx:id="player2SpawnTool" text="Spawn J2" toggleGroup="$toolGroup"
-                             styleClass="tool-button" />
+                <ToggleButton fx:id="emptyTool" toggleGroup="$toolGroup"
+                             styleClass="tool-button, empty-tool">
+                    <tooltip>
+                        <Tooltip text="Vide" />
+                    </tooltip>
+                </ToggleButton>
+                <ToggleButton fx:id="wallTool" toggleGroup="$toolGroup"
+                             styleClass="tool-button, wall-tool">
+                    <tooltip>
+                        <Tooltip text="Mur indestructible" />
+                    </tooltip>
+                </ToggleButton>
+                <ToggleButton fx:id="destructibleWallTool" toggleGroup="$toolGroup"
+                             styleClass="tool-button, destructible-wall-tool">
+                    <tooltip>
+                        <Tooltip text="Mur destructible" />
+                    </tooltip>
+                </ToggleButton>
+                <ToggleButton fx:id="player1SpawnTool" toggleGroup="$toolGroup"
+                             styleClass="tool-button, player1-tool">
+                    <tooltip>
+                        <Tooltip text="Spawn Joueur 1" />
+                    </tooltip>
+                </ToggleButton>
+                <ToggleButton fx:id="player2SpawnTool" toggleGroup="$toolGroup"
+                             styleClass="tool-button, player2-tool">
+                    <tooltip>
+                        <Tooltip text="Spawn Joueur 2" />
+                    </tooltip>
+                </ToggleButton>
 
+                <Separator orientation="VERTICAL" />
+                
+                <!-- Bouton pour placer des murs aléatoirement -->
+                <Button fx:id="randomWallsButton" text="Murs Aléatoires" styleClass="action-button" />
+                
                 <Separator orientation="VERTICAL" />
 
                 <Label text="Dimensions:" styleClass="toolbar-label" />
@@ -114,6 +143,10 @@
                 <Label text="• Cliquez sur le canvas pour placer/modifier"
                        styleClass="instruction-text" wrapText="true" />
                 <Label text="• Maintenez et glissez pour peindre"
+                       styleClass="instruction-text" wrapText="true" />
+                <Label text="• Clic droit pour ouvrir le menu de sélection d'outil"
+                       styleClass="instruction-text" wrapText="true" />
+                <Label text="• 'Murs Aléatoires' place des murs destructibles aléatoirement"
                        styleClass="instruction-text" wrapText="true" />
                 <Label text="• Les bordures et murs fixes ne peuvent pas être modifiés"
                        styleClass="instruction-text" wrapText="true" />
@@ -176,14 +209,6 @@
             </VBox>
 
             <Region VBox.vgrow="ALWAYS" />
-
-            <!-- Informations système -->
-            <VBox spacing="5" styleClass="system-info">
-                <Label text="Format de fichier:" styleClass="info-subtitle" />
-                <Label text="• Extension: .level" styleClass="info-detail" />
-                <Label text="• Format: CSV" styleClass="info-detail" />
-                <Label text="• Compatible avec le jeu" styleClass="info-detail" />
-            </VBox>
         </VBox>
     </right>
 
