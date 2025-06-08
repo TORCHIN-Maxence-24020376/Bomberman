@@ -1,4 +1,4 @@
-package com.example.bomberman;
+package com.example.bomberman.models.entities;
 
 import java.io.Serializable;
 

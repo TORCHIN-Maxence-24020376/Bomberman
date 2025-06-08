@@ -1,5 +1,7 @@
-package com.example.bomberman;
+package com.example.bomberman.controller;
 
+import com.example.bomberman.models.entities.PlayerProfile;
+import com.example.bomberman.service.ProfileManager;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;

@@ -9,7 +9,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Button?>
 <VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.bomberman.MainMenuController"
+      fx:controller="com.example.bomberman.controller.MainMenuController"
       alignment="CENTER" spacing="20" styleClass="main-menu">
 
     <padding>

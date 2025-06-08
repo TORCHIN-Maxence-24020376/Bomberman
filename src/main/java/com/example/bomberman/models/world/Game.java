@@ -1,5 +1,9 @@
-package com.example.bomberman;
+package com.example.bomberman.models.world;
 
+import com.example.bomberman.models.entities.Bomb;
+import com.example.bomberman.models.entities.Player;
+import com.example.bomberman.models.entities.PlayerProfile;
+import com.example.bomberman.models.entities.PowerUp;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 
@@ -111,17 +115,10 @@ public class Game {
     }
 
     private void movePlayer(Player player, int dx, int dy) {
-        if (!player.canMove()) return; // Vérifier si le joueur peut bouger
-
-        int newX = player.getX() + dx;
-        int newY = player.getY() + dy;
-
-        if (board.isValidMove(newX, newY)) {
-            player.setPosition(newX, newY);
-
+        if (player.move(dx, dy, board)) {
             // Collecter power-up si disponible
             try {
-                PowerUp powerUp = board.collectPowerUp(newX, newY);
+                PowerUp powerUp = board.collectPowerUp(player.getX(), player.getY());
                 if (powerUp != null) {
                     player.applyPowerUp(powerUp.getType());
                     // Ajouter des points
@@ -148,6 +145,13 @@ public class Game {
     }
 
     public void update() {
+        // Mettre à jour le plateau
+        board.update();
+        
+        // Mettre à jour les joueurs
+        player1.update();
+        player2.update();
+        
         // Traiter les mouvements en continu
         processMovement();
 
@@ -198,7 +202,12 @@ public class Game {
                 }
                 board.explode(x + i, y);
                 if (board.isWall(x + i, y)) break;
+            } else {
+                break;
             }
+        }
+        
+        for (int i = 1; i <= bomb.getRange(); i++) {
             // Gauche
             if (x - i >= 0 && board.canExplode(x - i, y)) {
                 if (board.isWall(x - i, y)) {
@@ -206,7 +215,12 @@ public class Game {
                 }
                 board.explode(x - i, y);
                 if (board.isWall(x - i, y)) break;
+            } else {
+                break;
             }
+        }
+        
+        for (int i = 1; i <= bomb.getRange(); i++) {
             // Haut
             if (y - i >= 0 && board.canExplode(x, y - i)) {
                 if (board.isWall(x, y - i)) {
@@ -214,7 +228,12 @@ public class Game {
                 }
                 board.explode(x, y - i);
                 if (board.isWall(x, y - i)) break;
+            } else {
+                break;
             }
+        }
+        
+        for (int i = 1; i <= bomb.getRange(); i++) {
             // Bas
             if (y + i < BOARD_HEIGHT && board.canExplode(x, y + i)) {
                 if (board.isWall(x, y + i)) {
@@ -222,6 +241,8 @@ public class Game {
                 }
                 board.explode(x, y + i);
                 if (board.isWall(x, y + i)) break;
+            } else {
+                break;
             }
         }
 
@@ -261,8 +282,59 @@ public class Game {
     public boolean isGameRunning() { return gameRunning; }
     public int getPlayer1Score() { return player1Score; }
     public int getPlayer2Score() { return player2Score; }
-
-    // ← AJOUTÉ : Nouvelles méthodes manquantes
     public int getBombsPlaced() { return bombsPlaced; }
     public int getWallsDestroyed() { return wallsDestroyed; }
+
+    /**
+     * Charge un niveau personnalisé à partir d'un fichier
+     * @param levelPath Chemin vers le fichier de niveau
+     * @return true si le niveau a été chargé avec succès, false sinon
+     */
+    public boolean loadLevel(String levelPath) {
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(levelPath))) {
+            // Lire les dimensions
+            String[] dimensions = reader.readLine().split(",");
+            int levelWidth = Integer.parseInt(dimensions[0]);
+            int levelHeight = Integer.parseInt(dimensions[1]);
+
+            // Lire les positions des joueurs
+            String[] players = reader.readLine().split(",");
+            int player1X = Integer.parseInt(players[0]);
+            int player1Y = Integer.parseInt(players[1]);
+            int player2X = Integer.parseInt(players[2]);
+            int player2Y = Integer.parseInt(players[3]);
+
+            // Créer un nouveau plateau de jeu avec les dimensions lues
+            board = new GameBoard();
+            
+            // Lire les données du niveau
+            int[][] levelData = new int[levelHeight][levelWidth];
+            for (int y = 0; y < levelHeight; y++) {
+                String[] row = reader.readLine().split(",");
+                for (int x = 0; x < levelWidth; x++) {
+                    levelData[y][x] = Integer.parseInt(row[x]);
+                }
+            }
+            
+            // Charger le niveau dans le plateau de jeu
+            board.loadLevel(levelData);
+            
+            // Repositionner les joueurs
+            player1 = new Player(player1X, player1Y, Color.BLUE, 1);
+            player2 = new Player(player2X, player2Y, Color.RED, 2);
+            
+            // Réinitialiser les bombes et l'état du jeu
+            bombs = new ArrayList<>();
+            gameRunning = true;
+            player1Score = 0;
+            player2Score = 0;
+            bombsPlaced = 0;
+            wallsDestroyed = 0;
+            
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

@@ -7,7 +7,7 @@
 <?import javafx.scene.text.Font?>
 
 <BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.bomberman.GameController"
+            fx:controller="com.example.bomberman.controller.GameController"
             styleClass="game-view">
 
   <!-- En-tête avec informations du jeu -->
@@ -32,9 +32,6 @@
         </Label>
 
         <Region HBox.hgrow="ALWAYS" />
-
-        <Button fx:id="pauseButton" text="Pause" styleClass="control-button" />
-        <Button fx:id="menuButton" text="Menu" styleClass="control-button" />
       </HBox>
 
       <!-- Informations des joueurs -->

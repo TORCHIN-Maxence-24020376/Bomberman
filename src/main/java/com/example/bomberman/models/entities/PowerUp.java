@@ -1,4 +1,4 @@
-package com.example.bomberman;
+package com.example.bomberman.models.entities;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -6,7 +6,7 @@ import javafx.scene.paint.Color;
 /**
  * Classe représentant un power-up dans le jeu
  */
-public class PowerUp {
+public class PowerUp extends StaticEntity {
     /**
      * Types de power-ups disponibles
      */
@@ -18,10 +18,7 @@ public class PowerUp {
         SKULL        // Malédiction (effet négatif)
     }
 
-    private int x, y;
     private Type type;
-    private boolean collected;
-    private long spawnTime;
     private static final long BLINK_DURATION = 10000; // 10 secondes avant disparition
 
     /**
@@ -31,39 +28,42 @@ public class PowerUp {
      * @param type Type de power-up
      */
     public PowerUp(int x, int y, Type type) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
         this.type = type;
-        this.collected = false;
-        this.spawnTime = System.currentTimeMillis();
     }
 
-    /**
-     * Met à jour l'état du power-up
-     */
+    @Override
     public void update() {
         // Le power-up disparaît après un certain temps
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - spawnTime > BLINK_DURATION && !collected) {
-            // Marquer comme collecté pour le supprimer
-            collected = true;
+        if (getElapsedTime() > BLINK_DURATION && isActive) {
+            deactivate();
         }
     }
 
     /**
-     * Dessine le power-up
-     * @param gc Contexte graphique
-     * @param tileSize Taille d'une case
+     * Collecte le power-up
      */
-    public void render(GraphicsContext gc, int tileSize) {
-        if (collected) return;
+    public void collect() {
+        deactivate();
+    }
 
-        long currentTime = System.currentTimeMillis();
-        long timeAlive = currentTime - spawnTime;
+    /**
+     * Vérifie si le power-up doit être supprimé
+     * @return true si le power-up doit être supprimé
+     */
+    public boolean shouldRemove() {
+        return !isActive || getElapsedTime() > BLINK_DURATION;
+    }
+
+    @Override
+    public void render(GraphicsContext gc, int tileSize) {
+        if (!isActive) return;
+
+        long timeAlive = getElapsedTime();
 
         // Effet de clignotement avant disparition
         boolean shouldBlink = timeAlive > BLINK_DURATION - 3000; // 3 dernières secondes
-        if (shouldBlink && (currentTime / 200) % 2 == 0) {
+        if (shouldBlink && (System.currentTimeMillis() / 200) % 2 == 0) {
             return; // Ne pas dessiner (effet clignotant)
         }
 
@@ -115,24 +115,6 @@ public class PowerUp {
         gc.strokeRect(x * tileSize + 5, y * tileSize + 5, size, size);
     }
 
-    /**
-     * Marque le power-up comme collecté
-     */
-    public void collect() {
-        this.collected = true;
-    }
-
-    /**
-     * Vérifie si le power-up doit être supprimé
-     * @return true si le power-up doit être supprimé
-     */
-    public boolean shouldRemove() {
-        return collected || (System.currentTimeMillis() - spawnTime > BLINK_DURATION);
-    }
-
-    // Getters
-    public int getX() { return x; }
-    public int getY() { return y; }
+    // Getter
     public Type getType() { return type; }
-    public boolean isCollected() { return collected; }
 }

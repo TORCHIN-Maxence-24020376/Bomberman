@@ -1,5 +1,8 @@
-package com.example.bomberman;
+package com.example.bomberman.controller;
 
+import com.example.bomberman.models.entities.PlayerProfile;
+import com.example.bomberman.service.ProfileManager;
+import com.example.bomberman.service.SoundManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -98,7 +101,7 @@ public class MainMenuController implements Initializable {
             soundManager.stopBackgroundMusic();
 
             // Charger la scène de jeu existante (votre game-view.fxml original)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("game-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
             Parent gameRoot = loader.load();
 
             // NE PAS essayer de récupérer le contrôleur - laisser JavaFX le gérer
@@ -110,7 +113,7 @@ public class MainMenuController implements Initializable {
 
             // Charger le CSS s'il existe
             try {
-                var cssResource = getClass().getResource("styles.css");
+                var cssResource = getClass().getResource("/com/example/bomberman/styles.css");
                 if (cssResource != null) {
                     gameScene.getStylesheets().add(cssResource.toExternalForm());
                 }
@@ -140,7 +143,7 @@ public class MainMenuController implements Initializable {
             // Créer une nouvelle fenêtre avec votre jeu original
             Stage gameStage = new Stage();
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("game-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
             Parent root = loader.load();
 
             Scene gameScene = new Scene(root, 800, 600);
@@ -190,7 +193,36 @@ public class MainMenuController implements Initializable {
      */
     @FXML
     private void openLevelEditor() {
-        showAlert("Info", "Éditeur de niveaux en cours de développement.", Alert.AlertType.INFORMATION);
+        try {
+            soundManager.stopBackgroundMusic();
+
+            // Charger la scène de l'éditeur de niveau
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/level-editor-view.fxml"));
+            Parent editorRoot = loader.load();
+
+            // Changer de scène
+            Stage stage = (Stage) levelEditorButton.getScene().getWindow();
+            Scene editorScene = new Scene(editorRoot, 800, 600);
+
+            // Charger le CSS s'il existe
+            try {
+                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                if (cssResource != null) {
+                    editorScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé, continuation sans styles");
+            }
+
+            stage.setScene(editorScene);
+            stage.setTitle("Super Bomberman - Éditeur de niveaux");
+
+            System.out.println("Éditeur de niveaux lancé avec succès !");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de charger l'éditeur de niveaux.", Alert.AlertType.ERROR);
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.example.bomberman;
+package com.example.bomberman.enums;
 
 /**
  * Énumération représentant les différents états du jeu

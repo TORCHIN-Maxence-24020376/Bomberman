@@ -1,6 +1,6 @@
-package com.example.bomberman;
+package com.example.bomberman.models.world;
 
-import com.example.bomberman.PowerUp;
+import com.example.bomberman.models.entities.PowerUp;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -24,6 +24,13 @@ public class GameBoard {
     private int width, height;
     private static final long EXPLOSION_DURATION = 1000; // 1 seconde
     private static final double POWERUP_SPAWN_CHANCE = 0.3; // 30% de chance
+
+    /**
+     * Constructeur par défaut avec dimensions standard
+     */
+    public GameBoard() {
+        this(15, 13); // Dimensions standard par défaut
+    }
 
     /**
      * Constructeur du plateau de jeu
@@ -202,7 +209,7 @@ public class GameBoard {
      */
     public PowerUp getPowerUpAt(int x, int y) {
         return powerUps.stream()
-                .filter(p -> p.getX() == x && p.getY() == y && !p.isCollected())
+                .filter(p -> p.getX() == x && p.getY() == y && p.isActive())
                 .findFirst()
                 .orElse(null);
     }
@@ -332,7 +339,7 @@ public class GameBoard {
 
         // Dessiner les power-ups
         for (PowerUp powerUp : powerUps) {
-            if (!powerUp.isCollected()) {
+            if (powerUp.isActive()) {
                 powerUp.render(gc, tileSize);
             }
         }
@@ -366,5 +373,29 @@ public class GameBoard {
      */
     public void addPowerUp(PowerUp powerUp) {
         powerUps.add(powerUp);
+    }
+
+    /**
+     * Charge un niveau personnalisé
+     * @param levelData Les données du niveau
+     */
+    public void loadLevel(int[][] levelData) {
+        if (levelData == null || levelData.length == 0 || levelData[0].length == 0) {
+            initializeBoard(); // Fallback vers un niveau standard
+            return;
+        }
+        
+        this.height = levelData.length;
+        this.width = levelData[0].length;
+        this.board = new int[height][width];
+        this.explosionTime = new long[height][width];
+        this.powerUps.clear();
+        
+        // Copier les données du niveau
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                board[y][x] = levelData[y][x];
+            }
+        }
     }
 }

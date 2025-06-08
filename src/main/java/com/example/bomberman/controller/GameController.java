@@ -1,5 +1,12 @@
-package com.example.bomberman;
+package com.example.bomberman.controller;
 
+import com.example.bomberman.models.entities.Bomb;
+import com.example.bomberman.models.entities.Player;
+import com.example.bomberman.models.entities.PlayerProfile;
+import com.example.bomberman.models.world.Game;
+import com.example.bomberman.models.world.GameBoard;
+import com.example.bomberman.service.ProfileManager;
+import com.example.bomberman.service.SoundManager;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -31,8 +38,6 @@ public class GameController implements Initializable {
     @FXML private Label player1InfoLabel;
     @FXML private Label player2InfoLabel;
     @FXML private Label gameStatusLabel;
-    @FXML private Button pauseButton;
-    @FXML private Button menuButton;
     @FXML private ProgressBar player1HealthBar;
     @FXML private ProgressBar player2HealthBar;
     @FXML private HBox player1PowerUpsBox;
@@ -59,6 +64,10 @@ public class GameController implements Initializable {
     private long pauseStartTime;
     private long totalPauseTime;
     private boolean isPaused = false;
+    
+    // Mode test de l'éditeur
+    private boolean isTestMode = false;
+    private Stage levelEditorStage = null;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -99,13 +108,6 @@ public class GameController implements Initializable {
      * Configure les gestionnaires d'événements
      */
     private void setupEventHandlers() {
-        if (pauseButton != null) {
-            pauseButton.setOnAction(e -> togglePause());
-        }
-        if (menuButton != null) {
-            menuButton.setOnAction(e -> returnToMenu());
-        }
-
         // Événements clavier
         gameCanvas.setOnKeyPressed(this::handleKeyPressed);
         gameCanvas.setOnKeyReleased(this::handleKeyReleased);
@@ -125,15 +127,22 @@ public class GameController implements Initializable {
      * Gestion des touches pressées
      */
     @FXML
-    private void handleKeyPressed(KeyEvent event) {
-        if (!gameRunning) return;
+    public void handleKeyPressed(KeyEvent event) {
+        if (!gameRunning && !isPaused) return;
 
         pressedKeys.add(event.getCode());
         game.handleKeyPressed(event.getCode());
 
         // Gestion spéciale pour la pause
         if (event.getCode() == KeyCode.ESCAPE) {
-            togglePause();
+            if (isPaused) {
+                // Si déjà en pause, reprendre
+                togglePause();
+            } else {
+                // Mettre en pause et afficher le menu
+                togglePause();
+                returnToMenu();
+            }
         }
     }
 
@@ -141,7 +150,7 @@ public class GameController implements Initializable {
      * Gestion des touches relâchées
      */
     @FXML
-    private void handleKeyReleased(KeyEvent event) {
+    public void handleKeyReleased(KeyEvent event) {
         pressedKeys.remove(event.getCode());
         game.handleKeyReleased(event.getCode());
     }
@@ -206,21 +215,31 @@ public class GameController implements Initializable {
 
         gameOverAlert.setContentText(content.toString());
 
-        ButtonType newGameButton = new ButtonType("Nouvelle partie");
-        ButtonType menuButton = new ButtonType("Menu principal");
-        ButtonType quitButton = new ButtonType("Quitter");
+        // Boutons différents selon le mode
+        if (isTestMode) {
+            ButtonType returnToEditorButton = new ButtonType("Retour à l'éditeur");
+            gameOverAlert.getButtonTypes().setAll(returnToEditorButton);
+            
+            gameOverAlert.showAndWait().ifPresent(response -> {
+                returnToLevelEditor();
+            });
+        } else {
+            ButtonType newGameButton = new ButtonType("Nouvelle partie");
+            ButtonType menuButton = new ButtonType("Menu principal");
+            ButtonType quitButton = new ButtonType("Quitter");
 
-        gameOverAlert.getButtonTypes().setAll(newGameButton, menuButton, quitButton);
+            gameOverAlert.getButtonTypes().setAll(newGameButton, menuButton, quitButton);
 
-        Optional<ButtonType> result = gameOverAlert.showAndWait();
+            Optional<ButtonType> result = gameOverAlert.showAndWait();
 
-        if (result.isPresent()) {
-            if (result.get() == newGameButton) {
-                restartGame();
-            } else if (result.get() == menuButton) {
-                returnToMenu();
-            } else {
-                Platform.exit();
+            if (result.isPresent()) {
+                if (result.get() == newGameButton) {
+                    restartGame();
+                } else if (result.get() == menuButton) {
+                    returnToMenu();
+                } else {
+                    Platform.exit();
+                }
             }
         }
     }
@@ -242,9 +261,6 @@ public class GameController implements Initializable {
             isPaused = false;
             gameRunning = true;
             totalPauseTime += System.currentTimeMillis() - pauseStartTime;
-            if (pauseButton != null) {
-                pauseButton.setText("Pause");
-            }
             if (gameStatusLabel != null) {
                 gameStatusLabel.setText("En cours");
             }
@@ -253,9 +269,6 @@ public class GameController implements Initializable {
             isPaused = true;
             gameRunning = false;
             pauseStartTime = System.currentTimeMillis();
-            if (pauseButton != null) {
-                pauseButton.setText("Reprendre");
-            }
             if (gameStatusLabel != null) {
                 gameStatusLabel.setText("PAUSE");
             }
@@ -267,15 +280,20 @@ public class GameController implements Initializable {
      */
     private void returnToMenu() {
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Retour au menu");
-        confirmAlert.setHeaderText("Voulez-vous vraiment quitter la partie ?");
-        confirmAlert.setContentText("La partie en cours sera perdue.");
-
-        ButtonType returnButton = new ButtonType("Retour au menu");
+        confirmAlert.setTitle("Menu de pause");
+        confirmAlert.setHeaderText("Options");
+        
+        // Boutons différents selon le mode
+        ButtonType returnButton = new ButtonType("Retour au menu principal");
         ButtonType restartButton = new ButtonType("Nouvelle partie");
-        ButtonType cancelButton = new ButtonType("Continuer", ButtonType.CANCEL.getButtonData());
-
-        confirmAlert.getButtonTypes().setAll(returnButton, restartButton, cancelButton);
+        ButtonType continueButton = new ButtonType("Continuer", ButtonType.CANCEL.getButtonData());
+        
+        if (isTestMode) {
+            ButtonType editorButton = new ButtonType("Retour à l'éditeur");
+            confirmAlert.getButtonTypes().setAll(editorButton, restartButton, returnButton, continueButton);
+        } else {
+            confirmAlert.getButtonTypes().setAll(restartButton, returnButton, continueButton);
+        }
 
         confirmAlert.showAndWait().ifPresent(response -> {
             if (response == returnButton) {
@@ -285,7 +303,7 @@ public class GameController implements Initializable {
                 try {
                     // Essayer de charger le menu
                     String[] possiblePaths = {
-                            "/com/example/bomberman/menu-view.fxml",
+                            "/com/example/bomberman/view/menu-view.fxml",
                             "menu-view.fxml",
                             "/menu-view.fxml"
                     };
@@ -311,7 +329,7 @@ public class GameController implements Initializable {
 
                         // Charger CSS si disponible
                         try {
-                            var cssResource = getClass().getResource("styles.css");
+                            var cssResource = getClass().getResource("/com/example/bomberman/style.css");
                             if (cssResource != null) {
                                 menuScene.getStylesheets().add(cssResource.toExternalForm());
                             }
@@ -333,6 +351,8 @@ public class GameController implements Initializable {
 
             } else if (response == restartButton) {
                 restartGame();
+            } else if (isTestMode && response.getText().equals("Retour à l'éditeur")) {
+                returnToLevelEditor();
             }
             // Si Cancel, ne rien faire (continuer la partie)
         });
@@ -394,7 +414,7 @@ public class GameController implements Initializable {
     /**
      * Dessine le jeu
      */
-    private void render() {
+    public void render() {
         // Effacer le canvas
         gc.clearRect(0, 0, gameCanvas.getWidth(), gameCanvas.getHeight());
 
@@ -543,6 +563,92 @@ public class GameController implements Initializable {
             alert.showAndWait();
         } catch (Exception e) {
             System.err.println("Impossible d'afficher l'alerte: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Charge un niveau personnalisé depuis un fichier
+     * @param levelPath Chemin vers le fichier de niveau
+     */
+    public void loadCustomLevel(String levelPath) {
+        if (game == null) {
+            game = new Game();
+        }
+        
+        if (game.loadLevel(levelPath)) {
+            gameRunning = true;
+            gameStartTime = System.currentTimeMillis();
+            totalPauseTime = 0;
+            isPaused = false;
+            
+            updateUI();
+            
+            // Jouer la musique de jeu
+            soundManager.playBackgroundMusic("/sounds/game_music.mp3");
+            
+            System.out.println("Niveau personnalisé chargé : " + levelPath);
+        } else {
+            showAlert("Erreur", "Impossible de charger le niveau personnalisé.", Alert.AlertType.ERROR);
+            initializeGame(); // Fallback vers un niveau standard
+        }
+    }
+
+    /**
+     * Définit si le jeu est en mode test depuis l'éditeur de niveau
+     */
+    public void setTestMode(boolean testMode) {
+        this.isTestMode = testMode;
+    }
+    
+    /**
+     * Vérifie si le jeu est en mode test
+     * @return true si le jeu est en mode test
+     */
+    public boolean isTestMode() {
+        return isTestMode;
+    }
+    
+    /**
+     * Définit la référence vers la fenêtre de l'éditeur de niveau
+     */
+    public void setLevelEditorStage(Stage stage) {
+        this.levelEditorStage = stage;
+    }
+
+    /**
+     * Retourne à l'éditeur de niveau
+     */
+    private void returnToLevelEditor() {
+        stopGameLoop();
+        soundManager.stopBackgroundMusic();
+        
+        if (levelEditorStage != null) {
+            try {
+                // Recharger la scène de l'éditeur
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/level-editor-view.fxml"));
+                Parent editorRoot = loader.load();
+                
+                // Changer de scène
+                Scene editorScene = new Scene(editorRoot, levelEditorStage.getWidth(), levelEditorStage.getHeight());
+                
+                // Charger le CSS
+                try {
+                    var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                    if (cssResource != null) {
+                        editorScene.getStylesheets().add(cssResource.toExternalForm());
+                    }
+                } catch (Exception cssError) {
+                    System.out.println("CSS non trouvé, continuation sans styles");
+                }
+                
+                levelEditorStage.setScene(editorScene);
+                levelEditorStage.setTitle("Super Bomberman - Éditeur de niveaux");
+                
+                System.out.println("Retour à l'éditeur de niveaux");
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Erreur", "Impossible de retourner à l'éditeur de niveaux.", Alert.AlertType.ERROR);
+            }
         }
     }
 }

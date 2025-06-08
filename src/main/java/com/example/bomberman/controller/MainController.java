@@ -1,5 +1,9 @@
-package com.example.bomberman;
+package com.example.bomberman.controller;
 
+import com.example.bomberman.models.entities.Bomb;
+import com.example.bomberman.models.world.Game;
+import com.example.bomberman.models.world.GameBoard;
+import com.example.bomberman.models.entities.Player;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;

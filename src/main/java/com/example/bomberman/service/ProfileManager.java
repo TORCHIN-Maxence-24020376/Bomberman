@@ -1,6 +1,6 @@
-package com.example.bomberman;
+package com.example.bomberman.service;
 
-import com.example.bomberman.PlayerProfile;
+import com.example.bomberman.models.entities.PlayerProfile;
 
 import java.io.*;
 import java.util.ArrayList;

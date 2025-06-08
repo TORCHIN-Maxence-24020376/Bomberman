@@ -1,4 +1,4 @@
-package com.example.bomberman;
+package com.example.bomberman.service;
 
 import java.awt.*;
 import java.util.HashMap;

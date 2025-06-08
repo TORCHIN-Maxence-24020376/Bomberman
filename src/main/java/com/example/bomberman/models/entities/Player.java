@@ -1,16 +1,14 @@
-package com.example.bomberman;
+package com.example.bomberman.models.entities;
 
-import com.example.bomberman.PlayerProfile;
-import com.example.bomberman.PowerUp;
-import com.example.bomberman.SoundManager;
+import com.example.bomberman.models.world.GameBoard;
+import com.example.bomberman.service.SoundManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
  * Classe représentant un joueur dans le jeu Bomberman
  */
-public class Player {
-    private int x, y;
+public class Player extends MovableEntity {
     private Color color;
     private int playerId;
     private int lives;
@@ -37,8 +35,7 @@ public class Player {
      * Constructeur du joueur
      */
     public Player(int x, int y, Color color, int playerId) {
-        this.x = x;
-        this.y = y;
+        super(x, y, 1); // Vitesse initiale = 1
         this.color = color;
         this.playerId = playerId;
         this.lives = 3;
@@ -54,9 +51,7 @@ public class Player {
         this.lastAnimationTime = System.currentTimeMillis();
     }
 
-    /**
-     * Met à jour l'état du joueur
-     */
+    @Override
     public void update() {
         // Gérer l'effet du skull
         if (hasSkull && System.currentTimeMillis() > skullEndTime) {
@@ -71,9 +66,7 @@ public class Player {
         }
     }
 
-    /**
-     * Dessine le joueur avec des améliorations visuelles
-     */
+    @Override
     public void render(GraphicsContext gc, int tileSize) {
         if (!isAlive()) return;
 
@@ -163,23 +156,17 @@ public class Player {
     }
 
     /**
-     * Vérifie si le joueur peut se déplacer
-     */
-    public boolean canMove() {
-        long moveDelay = baseMoveDelay / speed; // Plus rapide avec la vitesse
-        return System.currentTimeMillis() - lastMoveTime >= moveDelay;
-    }
-
-    /**
      * Définit la nouvelle position du joueur
+     * @param newX Nouvelle position X
+     * @param newY Nouvelle position Y
+     * @param board Plateau de jeu pour vérifier les collisions
      */
-    public void setPosition(int newX, int newY) {
-        if (canMove()) {
-            this.x = newX;
-            this.y = newY;
-            this.lastMoveTime = System.currentTimeMillis();
+    public boolean moveToPosition(int newX, int newY, GameBoard board) {
+        if (move(newX - x, newY - y, board)) {
             SoundManager.getInstance().playSound("move");
+            return true;
         }
+        return false;
     }
 
     /**
@@ -198,7 +185,7 @@ public class Player {
                 break;
 
             case SPEED_UP:
-                speed = Math.min(speed + 1, 5); // Maximum vitesse 5
+                setSpeed(Math.min(speed + 1, 5)); // Maximum vitesse 5
                 break;
 
             case KICK:
@@ -222,7 +209,7 @@ public class Player {
         int randomEffect = (int)(Math.random() * 4);
         switch (randomEffect) {
             case 0: // Réduction de vitesse
-                speed = Math.max(1, speed - 1);
+                setSpeed(Math.max(1, speed - 1));
                 break;
             case 1: // Réduction de portée
                 bombRange = Math.max(1, bombRange - 1);
@@ -315,18 +302,7 @@ public class Player {
         return desc.toString();
     }
 
-    // Getters et Setters
-    public int getX() { return x; }
-    public int getY() { return y; }
-
-    /**
-     * Méthode pour forcer le changement de position (sans délai)
-     */
-    public void forcePosition(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
+    // Getters et setters
     public Color getColor() { return color; }
     public void setColor(Color color) { this.color = color; }
 
