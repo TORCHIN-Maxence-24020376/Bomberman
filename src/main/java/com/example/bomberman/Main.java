@@ -1,4 +1,6 @@
 package com.example.bomberman;
+import com.example.bomberman.service.ProfileManager;
+import com.example.bomberman.service.SoundManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -24,21 +26,21 @@ public class Main extends Application {
             Scene scene = null;
 
             try {
-                menuLoader = new FXMLLoader(Main.class.getResource("menu-view.fxml"));
+                menuLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/menu-view.fxml"));
                 scene = new Scene(menuLoader.load(), 800, 600);
                 System.out.println("Menu principal chargé avec succès !");
             } catch (Exception menuError) {
                 System.out.println("Impossible de charger le menu, chargement du jeu direct...");
 
                 // Fallback sur le jeu original
-                FXMLLoader gameLoader = new FXMLLoader(Main.class.getResource("game-view.fxml"));
+                FXMLLoader gameLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/game-view.fxml"));
                 scene = new Scene(gameLoader.load(), 800, 600);
                 System.out.println("Jeu direct chargé !");
             }
 
             // Ajouter le CSS si disponible
             try {
-                var cssResource = getClass().getResource("styles.css");
+                var cssResource = getClass().getResource("/com/example/bomberman/styles.css");
                 if (cssResource != null) {
                     scene.getStylesheets().add(cssResource.toExternalForm());
                     System.out.println("Styles CSS chargés !");

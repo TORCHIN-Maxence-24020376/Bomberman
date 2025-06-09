@@ -426,21 +426,27 @@
 
 /* ===== MENU CONTEXTUEL ===== */
 .context-menu {
-    -fx-background-color: rgba(55, 71, 79, 0.95);
-    -fx-background-radius: 8;
-    -fx-border-color: rgba(255, 255, 255, 0.2);
-    -fx-border-radius: 8;
-    -fx-border-width: 1;
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+    -fx-border-color: #555555;
+    -fx-border-width: 1px;
 }
 
-.context-menu .menu-item {
-    -fx-background-color: transparent;
-    -fx-text-fill: #ffffff;
+.menu-item {
+    -fx-text-fill: white;
 }
 
-.context-menu .menu-item:hover {
-    -fx-background-color: rgba(33, 150, 243, 0.3);
-    -fx-background-radius: 4;
+.menu-item .label {
+    -fx-text-fill: white;
+}
+
+.menu-item:focused {
+    -fx-background-color: #4a6da7;
+}
+
+.separator:horizontal .line {
+    -fx-border-color: #555555;
+    -fx-border-width: 1px;
 }
 
 /* ===== TOOLTIP ===== */
@@ -487,4 +493,83 @@
 .scale-on-hover:hover {
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
+}
+
+/* Styles pour l'éditeur de niveau */
+.level-editor {
+    -fx-background-color: #212121;
+}
+
+.editor-header {
+    -fx-background-color: #333333;
+}
+
+.toolbar {
+    -fx-background-color: #444444;
+}
+
+.toolbar-label, .section-subtitle, .instruction-text {
+    -fx-text-fill: white;
+}
+
+/* Styles pour les boutons d'outils */
+.tool-button {
+    -fx-min-width: 40px;
+    -fx-min-height: 40px;
+    -fx-pref-width: 40px;
+    -fx-pref-height: 40px;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+    -fx-border-width: 2px;
+    -fx-border-color: #555555;
+    -fx-cursor: hand;
+}
+
+.tool-button:selected {
+    -fx-border-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.5), 10, 0, 0, 0);
+}
+
+.empty-tool {
+    -fx-background-color: #8BC34A;
+}
+
+.wall-tool {
+    -fx-background-color: #424242;
+}
+
+.destructible-wall-tool {
+    -fx-background-color: #795548;
+}
+
+.player1-tool {
+    -fx-background-color: #2196F3;
+}
+
+.player2-tool {
+    -fx-background-color: #F44336;
+}
+
+/* Styles spécifiques pour l'éditeur */
+.dimension-label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.editor-button {
+    -fx-background-color: #4a6da7;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 5 10 5 10;
+    -fx-background-radius: 3;
+}
+
+.editor-button:hover {
+    -fx-background-color: #5c84c3;
+}
+
+.editor-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
 }
