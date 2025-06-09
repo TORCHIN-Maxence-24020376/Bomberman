@@ -41,8 +41,8 @@ public class MainMenuController implements Initializable {
         initializeComponents();
         loadProfiles();
 
-        // Démarrer la musique de menu (simulation)
-        soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
+        // Démarrer la musique de menu aléatoire (entre menu_music_A et menu_music_B)
+        soundManager.playBackgroundMusic("menu");
     }
 
     /**
@@ -99,6 +99,8 @@ public class MainMenuController implements Initializable {
     private void startGame() {
         try {
             soundManager.stopBackgroundMusic();
+            // Jouer la musique du jeu
+            soundManager.playBackgroundMusic("game_music");
 
             // Charger la scène de jeu existante (votre game-view.fxml original)
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
@@ -195,6 +197,8 @@ public class MainMenuController implements Initializable {
     private void openLevelEditor() {
         try {
             soundManager.stopBackgroundMusic();
+            // Jouer la musique de l'éditeur
+            soundManager.playBackgroundMusic("editor_music");
 
             // Charger la scène de l'éditeur de niveau
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/level-editor-view.fxml"));
@@ -254,15 +258,28 @@ public class MainMenuController implements Initializable {
     }
 
     /**
-     * Retourne au menu principal depuis une autre vue
+     * Retourne au menu principal
      */
     public void returnToMenu() {
-        loadProfiles(); // Actualiser les profils
-        soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
+        try {
+            // Arrêter la musique en cours
+            soundManager.stopBackgroundMusic();
+            // Jouer la musique du menu
+            soundManager.playBackgroundMusic("menu");
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
+            Parent menuRoot = loader.load();
+            Stage stage = (Stage) playButton.getScene().getWindow();
+            Scene menuScene = new Scene(menuRoot, 800, 600);
+            stage.setScene(menuScene);
+            stage.setTitle("Super Bomberman - Menu Principal");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
-     * Actualise l'affichage des profils
+     * Rafraîchit la liste des profils
      */
     public void refreshProfiles() {
         loadProfiles();

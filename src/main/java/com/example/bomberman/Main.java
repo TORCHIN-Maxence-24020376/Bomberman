@@ -31,6 +31,7 @@ public class Main extends Application {
                 System.out.println("Menu principal chargé avec succès !");
             } catch (Exception menuError) {
                 System.out.println("Impossible de charger le menu, chargement du jeu direct...");
+                menuError.printStackTrace();
 
                 // Fallback sur le jeu original
                 FXMLLoader gameLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/game-view.fxml"));
@@ -72,8 +73,15 @@ public class Main extends Application {
             // Afficher la fenêtre
             primaryStage.show();
 
-            // Démarrer la musique du menu
-            soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
+            // Démarrer la musique du menu après l'affichage de la fenêtre
+            Platform.runLater(() -> {
+                try {
+                    Thread.sleep(500); // Attendre 500ms pour que la fenêtre soit bien initialisée
+                    soundManager.playBackgroundMusic("menu");
+                } catch (Exception e) {
+                    System.err.println("Erreur lors du démarrage de la musique: " + e.getMessage());
+                }
+            });
 
             System.out.println("Super Bomberman lancé avec succès !");
 

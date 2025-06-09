@@ -101,7 +101,7 @@ public class GameController implements Initializable {
         updateUI();
 
         // Jouer la musique de jeu
-        soundManager.playBackgroundMusic("/sounds/game_music.mp3");
+        soundManager.playBackgroundMusic("game_music");
     }
 
     /**

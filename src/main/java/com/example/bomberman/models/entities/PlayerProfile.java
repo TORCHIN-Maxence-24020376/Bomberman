@@ -1,5 +1,7 @@
 package com.example.bomberman.models.entities;
 
+import com.example.bomberman.utils.ResourceManager;
+
 import java.io.Serializable;
 
 /**
@@ -61,6 +63,14 @@ public class PlayerProfile implements Serializable {
      */
     public String getFullName() {
         return firstName + " " + lastName;
+    }
+    
+    /**
+     * Retourne le thème sous forme d'énumération
+     * @return Le thème sous forme d'énumération
+     */
+    public ResourceManager.Theme getThemeEnum() {
+        return ResourceManager.themeFromString(theme);
     }
 
     // Getters et Setters
