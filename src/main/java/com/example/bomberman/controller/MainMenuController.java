@@ -3,8 +3,11 @@ package com.example.bomberman.controller;
 import com.example.bomberman.models.entities.PlayerProfile;
 import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
+import com.example.bomberman.service.UserPreferences;
 import com.example.bomberman.utils.ResourceManager;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -12,7 +15,10 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -28,38 +34,53 @@ public class MainMenuController implements Initializable {
 
     @FXML private Button playButton;
     @FXML private Button profilesButton;
+    @FXML private Button editorButton;
     @FXML private Button settingsButton;
-    @FXML private Button levelEditorButton;
     @FXML private Button quitButton;
     @FXML private ComboBox<String> player1Combo;
     @FXML private ComboBox<String> player2Combo;
 
     private ProfileManager profileManager;
     private SoundManager soundManager;
+    private UserPreferences userPreferences;
+    private ResourceManager resourceManager;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         profileManager = ProfileManager.getInstance();
         soundManager = SoundManager.getInstance();
+        userPreferences = UserPreferences.getInstance();
+        resourceManager = ResourceManager.getInstance();
 
-        initializeComponents();
+        // Appliquer les préférences utilisateur
+        userPreferences.applyPreferences();
+        
+        // Jouer la musique du menu si la musique est activée
+        if (userPreferences.isMusicEnabled()) {
+            soundManager.playBackgroundMusic("menu");
+        }
+
+        // Initialiser les actions des boutons
+        initializeButtons();
+        
+        // Charger les profils
         loadProfiles();
 
-        // Démarrer la musique de menu aléatoire (entre menu_music_A et menu_music_B)
-        soundManager.playBackgroundMusic("menu");
+        System.out.println("Menu principal chargé avec succès !");
+        System.out.println("Super Bomberman lancé avec succès !");
     }
-
+    
     /**
-     * Initialise les composants de l'interface
+     * Initialise les actions des boutons
      */
-    private void initializeComponents() {
+    private void initializeButtons() {
         // Configuration des boutons
         playButton.setOnAction(e -> startGame());
         profilesButton.setOnAction(e -> openProfilesManagement());
+        editorButton.setOnAction(e -> openLevelEditor());
         settingsButton.setOnAction(e -> openSettings());
-        levelEditorButton.setOnAction(e -> openLevelEditor());
         quitButton.setOnAction(e -> quitGame());
-
+        
         // Style des combos
         if (player1Combo != null) {
             player1Combo.setPromptText("Sélectionner Joueur 1");
@@ -70,34 +91,34 @@ public class MainMenuController implements Initializable {
     }
 
     /**
-     * Charge les profils dans les ComboBox
+     * Charge les profils des joueurs
      */
     private void loadProfiles() {
-        if (player1Combo == null || player2Combo == null) return;
-
         List<PlayerProfile> profiles = profileManager.getAllProfiles();
-
+        
         player1Combo.getItems().clear();
         player2Combo.getItems().clear();
-
-        // Convertir les profils en chaînes pour les ComboBox
+        
         for (PlayerProfile profile : profiles) {
-            String displayName = profile.getFullName();
-            player1Combo.getItems().add(displayName);
-            player2Combo.getItems().add(displayName);
+            String fullName = profile.getFullName();
+            player1Combo.getItems().add(fullName);
+            player2Combo.getItems().add(fullName);
         }
-
-        // Sélection par défaut
-        if (profiles.size() >= 2) {
+        
+        // Sélectionner les premiers profils par défaut
+        if (!profiles.isEmpty()) {
             player1Combo.setValue(profiles.get(0).getFullName());
-            player2Combo.setValue(profiles.get(1).getFullName());
-        } else if (profiles.size() == 1) {
-            player1Combo.setValue(profiles.get(0).getFullName());
+            
+            if (profiles.size() > 1) {
+                player2Combo.setValue(profiles.get(1).getFullName());
+            } else {
+                player2Combo.setValue(profiles.get(0).getFullName());
+            }
         }
     }
 
     /**
-     * Démarre une nouvelle partie - VERSION CORRIGÉE
+     * Démarre une nouvelle partie
      */
     @FXML
     private void startGame() {
@@ -167,11 +188,194 @@ public class MainMenuController implements Initializable {
     }
 
     /**
-     * Ouvre la gestion des profils
+     * Ouvre la personnalisation des contrôles
      */
     @FXML
     private void openProfilesManagement() {
-        showAlert("Info", "Gestion des profils en cours de développement.", Alert.AlertType.INFORMATION);
+        // Créer une fenêtre de dialogue personnalisée
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Personnalisation des contrôles");
+        dialog.setHeaderText("Personnaliser les touches des joueurs");
+        
+        // Configurer les boutons
+        ButtonType okButtonType = new ButtonType("Sauvegarder", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+        
+        // Créer la mise en page
+        VBox mainBox = new VBox(10);
+        mainBox.setPadding(new Insets(10));
+        
+        // Sélection du profil pour les contrôles
+        ComboBox<String> profileSelector = new ComboBox<>();
+        List<PlayerProfile> profiles = profileManager.getAllProfiles();
+        
+        for (PlayerProfile profile : profiles) {
+            profileSelector.getItems().add(profile.getFullName());
+        }
+        
+        if (!profiles.isEmpty()) {
+            profileSelector.setValue(profiles.get(0).getFullName());
+        }
+        
+        // Grille pour les contrôles
+        GridPane controlsGrid = new GridPane();
+        controlsGrid.setHgap(10);
+        controlsGrid.setVgap(10);
+        controlsGrid.setPadding(new Insets(10));
+        
+        // Labels pour les actions
+        controlsGrid.add(new Label("Haut:"), 0, 0);
+        controlsGrid.add(new Label("Bas:"), 0, 1);
+        controlsGrid.add(new Label("Gauche:"), 0, 2);
+        controlsGrid.add(new Label("Droite:"), 0, 3);
+        controlsGrid.add(new Label("Bombe:"), 0, 4);
+        controlsGrid.add(new Label("Spécial:"), 0, 5);
+        
+        // Boutons pour configurer les touches
+        Button upButton = new Button();
+        Button downButton = new Button();
+        Button leftButton = new Button();
+        Button rightButton = new Button();
+        Button bombButton = new Button();
+        Button specialButton = new Button();
+        
+        controlsGrid.add(upButton, 1, 0);
+        controlsGrid.add(downButton, 1, 1);
+        controlsGrid.add(leftButton, 1, 2);
+        controlsGrid.add(rightButton, 1, 3);
+        controlsGrid.add(bombButton, 1, 4);
+        controlsGrid.add(specialButton, 1, 5);
+        
+        // Bouton pour réinitialiser les contrôles
+        Button resetControlsButton = new Button("Réinitialiser les contrôles");
+        
+        // Fonction pour mettre à jour l'affichage des contrôles
+        Runnable updateControlsDisplay = () -> {
+            String selectedProfileName = profileSelector.getValue();
+            if (selectedProfileName != null) {
+                PlayerProfile selectedProfile = profileManager.findProfile(selectedProfileName);
+                if (selectedProfile != null) {
+                    upButton.setText(selectedProfile.getControl(PlayerProfile.ACTION_UP).getName());
+                    downButton.setText(selectedProfile.getControl(PlayerProfile.ACTION_DOWN).getName());
+                    leftButton.setText(selectedProfile.getControl(PlayerProfile.ACTION_LEFT).getName());
+                    rightButton.setText(selectedProfile.getControl(PlayerProfile.ACTION_RIGHT).getName());
+                    bombButton.setText(selectedProfile.getControl(PlayerProfile.ACTION_BOMB).getName());
+                    specialButton.setText(selectedProfile.getControl(PlayerProfile.ACTION_SPECIAL).getName());
+                }
+            }
+        };
+        
+        // Mettre à jour les contrôles quand le profil change
+        profileSelector.setOnAction(e -> updateControlsDisplay.run());
+        
+        // Configurer les boutons pour changer les contrôles
+        EventHandler<ActionEvent> configureControl = event -> {
+            Button sourceButton = (Button) event.getSource();
+            final String action;
+            
+            if (sourceButton == upButton) action = PlayerProfile.ACTION_UP;
+            else if (sourceButton == downButton) action = PlayerProfile.ACTION_DOWN;
+            else if (sourceButton == leftButton) action = PlayerProfile.ACTION_LEFT;
+            else if (sourceButton == rightButton) action = PlayerProfile.ACTION_RIGHT;
+            else if (sourceButton == bombButton) action = PlayerProfile.ACTION_BOMB;
+            else if (sourceButton == specialButton) action = PlayerProfile.ACTION_SPECIAL;
+            else action = "";
+            
+            String selectedProfileName = profileSelector.getValue();
+            if (selectedProfileName != null && !action.isEmpty()) {
+                PlayerProfile selectedProfile = profileManager.findProfile(selectedProfileName);
+                if (selectedProfile != null) {
+                    // Capture la variable action dans une variable finale pour utilisation dans le lambda
+                    final String finalAction = action;
+                    
+                    // Afficher une boîte de dialogue pour capturer la touche
+                    Dialog<KeyCode> keyDialog = new Dialog<>();
+                    keyDialog.setTitle("Configurer une touche");
+                    keyDialog.setHeaderText("Appuyez sur une touche pour l'action: " + finalAction);
+                    
+                    // Ajouter un bouton d'annulation
+                    keyDialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+                    
+                    // Zone de texte pour capturer la touche
+                    TextField keyField = new TextField();
+                    keyField.setEditable(false);
+                    keyField.setText("Appuyez sur une touche...");
+                    keyField.setOnKeyPressed(keyEvent -> {
+                        keyField.setText(keyEvent.getCode().getName());
+                        keyDialog.setResult(keyEvent.getCode());
+                        keyDialog.close();
+                    });
+                    
+                    keyDialog.getDialogPane().setContent(keyField);
+                    
+                    // Afficher la boîte de dialogue et attendre la saisie
+                    Optional<KeyCode> keyResult = keyDialog.showAndWait();
+                    keyResult.ifPresent(keyCode -> {
+                        // Vérifier si la touche est déjà utilisée
+                        if (selectedProfile.isKeyUsed(keyCode)) {
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Touche déjà utilisée");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Cette touche est déjà utilisée pour une autre action.");
+                            alert.showAndWait();
+                        } else {
+                            // Assigner la touche à l'action
+                            selectedProfile.setControl(finalAction, keyCode);
+                            sourceButton.setText(keyCode.getName());
+                        }
+                    });
+                }
+            }
+        };
+        
+        // Assigner l'événement aux boutons
+        upButton.setOnAction(configureControl);
+        downButton.setOnAction(configureControl);
+        leftButton.setOnAction(configureControl);
+        rightButton.setOnAction(configureControl);
+        bombButton.setOnAction(configureControl);
+        specialButton.setOnAction(configureControl);
+        
+        // Configurer le bouton de réinitialisation
+        resetControlsButton.setOnAction(e -> {
+            String selectedProfileName = profileSelector.getValue();
+            if (selectedProfileName != null) {
+                PlayerProfile selectedProfile = profileManager.findProfile(selectedProfileName);
+                if (selectedProfile != null) {
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("Réinitialiser les contrôles");
+                    confirmAlert.setHeaderText(null);
+                    confirmAlert.setContentText("Êtes-vous sûr de vouloir réinitialiser les contrôles pour " + selectedProfileName + " ?");
+                    
+                    if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+                        selectedProfile.resetControls();
+                        updateControlsDisplay.run();
+                    }
+                }
+            }
+        });
+        
+        // Ajouter les éléments à la boîte principale
+        mainBox.getChildren().addAll(
+            new Label("Sélectionnez un joueur:"), 
+            profileSelector, 
+            controlsGrid, 
+            resetControlsButton
+        );
+        
+        // Initialiser l'affichage des contrôles
+        if (!profiles.isEmpty()) {
+            updateControlsDisplay.run();
+        }
+        
+        dialog.getDialogPane().setContent(mainBox);
+        
+        // Afficher la boîte de dialogue
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == okButtonType) {
+            // Sauvegarder les profils
+            profileManager.saveProfiles();
+        }
     }
 
     /**
@@ -195,12 +399,12 @@ public class MainMenuController implements Initializable {
         
         // Activer/désactiver les sons
         CheckBox soundEnabledCheckbox = new CheckBox("Sons activés");
-        soundEnabledCheckbox.setSelected(soundManager.isSoundEnabled());
+        soundEnabledCheckbox.setSelected(userPreferences.isSoundEnabled());
         
         // Bouton pour couper/activer rapidement les sons
-        Button toggleSoundButton = new Button(soundManager.isSoundEnabled() ? "Couper les sons" : "Activer les sons");
+        Button toggleSoundButton = new Button(userPreferences.isSoundEnabled() ? "Couper les sons" : "Activer les sons");
         toggleSoundButton.setOnAction(e -> {
-            boolean newState = !soundManager.isSoundEnabled();
+            boolean newState = !userPreferences.isSoundEnabled();
             soundManager.setSoundEnabled(newState);
             soundEnabledCheckbox.setSelected(newState);
             toggleSoundButton.setText(newState ? "Couper les sons" : "Activer les sons");
@@ -215,15 +419,20 @@ public class MainMenuController implements Initializable {
         
         // Activer/désactiver la musique
         CheckBox musicEnabledCheckbox = new CheckBox("Musique activée");
-        musicEnabledCheckbox.setSelected(soundManager.isMusicEnabled());
+        musicEnabledCheckbox.setSelected(userPreferences.isMusicEnabled());
         
         // Bouton pour couper/activer rapidement la musique
-        Button toggleMusicButton = new Button(soundManager.isMusicEnabled() ? "Couper la musique" : "Activer la musique");
+        Button toggleMusicButton = new Button(userPreferences.isMusicEnabled() ? "Couper la musique" : "Activer la musique");
         toggleMusicButton.setOnAction(e -> {
-            boolean newState = !soundManager.isMusicEnabled();
+            boolean newState = !userPreferences.isMusicEnabled();
             soundManager.setMusicEnabled(newState);
             musicEnabledCheckbox.setSelected(newState);
             toggleMusicButton.setText(newState ? "Couper la musique" : "Activer la musique");
+            
+            // Relancer la musique si elle est activée
+            if (newState) {
+                soundManager.playBackgroundMusic("menu");
+            }
         });
         
         // Mise à jour du checkbox qui met aussi à jour le bouton
@@ -231,16 +440,21 @@ public class MainMenuController implements Initializable {
             boolean selected = musicEnabledCheckbox.isSelected();
             soundManager.setMusicEnabled(selected);
             toggleMusicButton.setText(selected ? "Couper la musique" : "Activer la musique");
+            
+            // Relancer la musique si elle est activée
+            if (selected) {
+                soundManager.playBackgroundMusic("menu");
+            }
         });
         
         // Volume des sons
         Label soundVolumeLabel = new Label("Volume des sons:");
-        Slider soundVolumeSlider = new Slider(0, 100, soundManager.getSoundVolume() * 100);
+        Slider soundVolumeSlider = new Slider(0, 100, userPreferences.getSoundVolume() * 100);
         soundVolumeSlider.setShowTickLabels(true);
         soundVolumeSlider.setShowTickMarks(true);
         soundVolumeSlider.setMajorTickUnit(25);
         soundVolumeSlider.setBlockIncrement(5);
-        Label soundVolumeValueLabel = new Label(String.format("%d%%", (int)(soundManager.getSoundVolume() * 100)));
+        Label soundVolumeValueLabel = new Label(String.format("%d%%", (int)(userPreferences.getSoundVolume() * 100)));
         
         // Mettre à jour l'étiquette et le volume en temps réel lors du changement
         soundVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -259,12 +473,12 @@ public class MainMenuController implements Initializable {
         
         // Volume de la musique
         Label musicVolumeLabel = new Label("Volume de la musique:");
-        Slider musicVolumeSlider = new Slider(0, 100, soundManager.getMusicVolume() * 100);
+        Slider musicVolumeSlider = new Slider(0, 100, userPreferences.getMusicVolume() * 100);
         musicVolumeSlider.setShowTickLabels(true);
         musicVolumeSlider.setShowTickMarks(true);
         musicVolumeSlider.setMajorTickUnit(25);
         musicVolumeSlider.setBlockIncrement(5);
-        Label musicVolumeValueLabel = new Label(String.format("%d%%", (int)(soundManager.getMusicVolume() * 100)));
+        Label musicVolumeValueLabel = new Label(String.format("%d%%", (int)(userPreferences.getMusicVolume() * 100)));
         
         // Mettre à jour l'étiquette et le volume en temps réel lors du changement
         musicVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -279,7 +493,6 @@ public class MainMenuController implements Initializable {
         themeComboBox.getItems().addAll("Default", "Desert", "Jungle");
         
         // Sélectionner le thème actuel
-        ResourceManager resourceManager = ResourceManager.getInstance();
         ResourceManager.Theme currentTheme = resourceManager.getCurrentTheme();
         themeComboBox.setValue(capitalizeFirstLetter(currentTheme.name().toLowerCase()));
         
@@ -308,16 +521,40 @@ public class MainMenuController implements Initializable {
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             // Appliquer les paramètres
-            soundManager.setSoundEnabled(soundEnabledCheckbox.isSelected());
-            soundManager.setMusicEnabled(musicEnabledCheckbox.isSelected());
+            boolean soundEnabled = soundEnabledCheckbox.isSelected();
+            boolean musicEnabled = musicEnabledCheckbox.isSelected();
+            double soundVolume = soundVolumeSlider.getValue() / 100.0;
+            double musicVolume = musicVolumeSlider.getValue() / 100.0;
+            String selectedTheme = themeComboBox.getValue().toUpperCase();
+            
+            // Mettre à jour les préférences utilisateur
+            userPreferences.setSoundEnabled(soundEnabled);
+            userPreferences.setMusicEnabled(musicEnabled);
+            userPreferences.setSoundVolume(soundVolume);
+            userPreferences.setMusicVolume(musicVolume);
+            userPreferences.setTheme(selectedTheme);
+            
+            // Appliquer les paramètres
+            soundManager.setSoundEnabled(soundEnabled);
+            soundManager.setMusicEnabled(musicEnabled);
+            soundManager.setSoundVolume(soundVolume);
+            soundManager.setMusicVolume(musicVolume);
+            
+            // Relancer la musique si elle est activée
+            if (musicEnabled) {
+                soundManager.playBackgroundMusic("menu");
+            }
             
             // Appliquer le thème sélectionné
-            String selectedTheme = themeComboBox.getValue();
             ResourceManager.Theme theme = ResourceManager.themeFromString(selectedTheme);
+            resourceManager.setTheme(theme);
             soundManager.setTheme(theme);
             
+            // Rafraîchir les sprites
+            resourceManager.clearCache();
+            
             // Afficher un message de confirmation
-            showAlert("Thème appliqué", "Le thème " + selectedTheme + " a été appliqué. Les changements seront visibles au prochain chargement d'écran.", Alert.AlertType.INFORMATION);
+            showAlert("Thème appliqué", "Le thème " + themeComboBox.getValue() + " a été appliqué. Les changements seront visibles au prochain chargement d'écran.", Alert.AlertType.INFORMATION);
         }
     }
 
@@ -327,18 +564,16 @@ public class MainMenuController implements Initializable {
     @FXML
     private void openLevelEditor() {
         try {
+            // Arrêter la musique en cours
             soundManager.stopBackgroundMusic();
             // Jouer la musique de l'éditeur
             soundManager.playBackgroundMusic("editor_music");
-
-            // Charger la scène de l'éditeur de niveau
+            
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/level-editor-view.fxml"));
             Parent editorRoot = loader.load();
-
-            // Changer de scène
-            Stage stage = (Stage) levelEditorButton.getScene().getWindow();
+            Stage stage = (Stage) editorButton.getScene().getWindow();
             Scene editorScene = new Scene(editorRoot, 800, 600);
-
+            
             // Charger le CSS s'il existe
             try {
                 var cssResource = getClass().getResource("/com/example/bomberman/style.css");
@@ -348,12 +583,11 @@ public class MainMenuController implements Initializable {
             } catch (Exception cssError) {
                 System.out.println("CSS non trouvé, continuation sans styles");
             }
-
+            
             stage.setScene(editorScene);
-            stage.setTitle("Super Bomberman - Éditeur de niveaux");
-
+            stage.setTitle("Super Bomberman - Éditeur de Niveaux");
+            
             System.out.println("Éditeur de niveaux lancé avec succès !");
-
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Erreur", "Impossible de charger l'éditeur de niveaux.", Alert.AlertType.ERROR);
@@ -404,6 +638,7 @@ public class MainMenuController implements Initializable {
             Scene menuScene = new Scene(menuRoot, 800, 600);
             stage.setScene(menuScene);
             stage.setTitle("Super Bomberman - Menu Principal");
+            System.out.println("Menu chargé depuis: " + "/com/example/bomberman/view/menu-view.fxml");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -71,10 +71,10 @@
             </font>
         </Button>
 
-        <Button fx:id="profilesButton" text="Gestion des Profils" prefWidth="200" prefHeight="35"
-                styleClass="secondary-button" />
+        <Button fx:id="profilesButton" text="Personnaliser les Contrôles" prefWidth="200" prefHeight="35"
+                styleClass="secondary-button" onAction="#openProfilesManagement" />
 
-        <Button fx:id="levelEditorButton" text="Éditeur de Niveaux" prefWidth="200" prefHeight="35"
+        <Button fx:id="editorButton" text="Éditeur de Niveaux" prefWidth="200" prefHeight="35"
                 styleClass="secondary-button" />
 
         <Button fx:id="settingsButton" text="Paramètres" prefWidth="200" prefHeight="35"

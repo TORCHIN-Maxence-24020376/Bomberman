@@ -623,6 +623,17 @@ currentMusic = musics[new Random().nextInt(musics.length)];
      */
     public void setTestMode(boolean testMode) {
         this.isTestMode = testMode;
+        
+        // Si en mode test, s'assurer que la musique est jouée
+        if (testMode && soundManager.isMusicEnabled()) {
+            // Choisir aléatoirement entre les musiques du jeu
+            String[] musics = { "game_music_A", "game_music_B", "game_music_C" };
+            currentMusic = musics[new Random().nextInt(musics.length)];
+            
+            // Arrêter la musique actuelle et jouer la musique du jeu
+            soundManager.stopBackgroundMusic();
+            soundManager.playBackgroundMusic(currentMusic);
+        }
     }
     
     /**

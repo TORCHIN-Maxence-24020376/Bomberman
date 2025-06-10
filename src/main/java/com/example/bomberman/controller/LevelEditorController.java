@@ -1,14 +1,21 @@
 package com.example.bomberman.controller;
 
+import com.example.bomberman.service.SoundManager;
+import com.example.bomberman.service.UserPreferences;
+import com.example.bomberman.utils.FileDialogManager;
+import com.example.bomberman.utils.ResourceManager;
+import com.example.bomberman.utils.SpriteManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
+import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -18,8 +25,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
-
-import com.example.bomberman.utils.FileDialogManager;
 
 /**
  * Contrôleur pour l'éditeur de niveaux
@@ -71,10 +76,35 @@ public class LevelEditorController implements Initializable {
 
     // Curseurs personnalisés
     private Map<Integer, Cursor> customCursors = new HashMap<>();
+    
+    // Gestionnaires
+    private SpriteManager spriteManager;
+    private ResourceManager resourceManager;
+    private UserPreferences userPreferences;
+    private SoundManager soundManager;
+    
+    // Sprites
+    private Image tileSprite;
+    private Image wallSprite;
+    private Image breakableWallSprite;
+    private Image player1Sprite;
+    private Image player2Sprite;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = editorCanvas.getGraphicsContext2D();
+        
+        // Initialiser les gestionnaires
+        spriteManager = SpriteManager.getInstance();
+        resourceManager = ResourceManager.getInstance();
+        userPreferences = UserPreferences.getInstance();
+        soundManager = SoundManager.getInstance();
+        
+        // Appliquer les préférences utilisateur
+        userPreferences.applyPreferences();
+        
+        // Charger les sprites selon le thème actuel
+        loadSprites();
         
         setupControls();
         
@@ -87,6 +117,36 @@ public class LevelEditorController implements Initializable {
         render();
         
         System.out.println("Éditeur de niveaux lancé avec succès !");
+    }
+    
+    /**
+     * Charge les sprites selon le thème actuel
+     */
+    private void loadSprites() {
+        tileSprite = spriteManager.loadSprite("tile");
+        wallSprite = spriteManager.loadSprite("unbreakable_wall");
+        breakableWallSprite = spriteManager.loadSprite("breakable_wall");
+        
+        // Pour les joueurs, on utilise des sprites génériques pour l'instant
+        player1Sprite = createColoredPlayerSprite(Color.BLUE);
+        player2Sprite = createColoredPlayerSprite(Color.RED);
+    }
+    
+    /**
+     * Crée un sprite de joueur coloré
+     */
+    private Image createColoredPlayerSprite(Color color) {
+        Canvas canvas = new Canvas(32, 32);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        
+        // Dessiner un cercle coloré
+        gc.setFill(color);
+        gc.fillOval(4, 4, 24, 24);
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        gc.strokeOval(4, 4, 24, 24);
+        
+        return canvas.snapshot(null, null);
     }
 
     /**
@@ -150,10 +210,32 @@ public class LevelEditorController implements Initializable {
      * Initialise les curseurs personnalisés
      */
     private void initializeCustomCursors() {
-        // Pour l'instant, nous utilisons des curseurs par défaut
-        // Les curseurs personnalisés seront ajoutés ultérieurement
+        try {
+            // Créer des curseurs personnalisés à partir des sprites
+            if (tileSprite != null) {
+                customCursors.put(EMPTY, new ImageCursor(tileSprite, tileSprite.getWidth() / 2, tileSprite.getHeight() / 2));
+            }
+            
+            if (wallSprite != null) {
+                customCursors.put(WALL, new ImageCursor(wallSprite, wallSprite.getWidth() / 2, wallSprite.getHeight() / 2));
+            }
+            
+            if (breakableWallSprite != null) {
+                customCursors.put(DESTRUCTIBLE_WALL, new ImageCursor(breakableWallSprite, breakableWallSprite.getWidth() / 2, breakableWallSprite.getHeight() / 2));
+            }
+            
+            if (player1Sprite != null) {
+                customCursors.put(3, new ImageCursor(player1Sprite, player1Sprite.getWidth() / 2, player1Sprite.getHeight() / 2));
+            }
+            
+            if (player2Sprite != null) {
+                customCursors.put(4, new ImageCursor(player2Sprite, player2Sprite.getWidth() / 2, player2Sprite.getHeight() / 2));
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la création des curseurs personnalisés: " + e.getMessage());
+        }
         
-        // Si aucun curseur personnalisé n'est créé, appliquer le curseur par défaut
+        // Appliquer le curseur initial
         updateCursor();
     }
     
@@ -395,51 +477,101 @@ public class LevelEditorController implements Initializable {
      * Dessine le niveau
      */
     public void render() {
+        if (gc == null) return;
+
+        // Effacer le canvas
         gc.clearRect(0, 0, editorCanvas.getWidth(), editorCanvas.getHeight());
 
+        // Dessiner chaque case
         for (int y = 0; y < levelHeight; y++) {
             for (int x = 0; x < levelWidth; x++) {
+                int cellType = levelData[y][x];
                 int cellX = x * TILE_SIZE;
                 int cellY = y * TILE_SIZE;
 
-                // Couleur de fond
-                switch (levelData[y][x]) {
-                    case EMPTY:
-                        gc.setFill(Color.LIGHTGREEN);
-                        break;
-                    case WALL:
-                        gc.setFill(Color.DARKGRAY);
-                        break;
-                    case DESTRUCTIBLE_WALL:
-                        gc.setFill(Color.BROWN);
-                        break;
+                // Dessiner le fond (tuile vide)
+                if (tileSprite != null) {
+                    gc.drawImage(tileSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+                } else {
+                    // Fallback: Damier
+                    gc.setFill((x + y) % 2 == 0 ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker());
+                    gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
                 }
 
-                gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+                // Dessiner le contenu de la case selon son type
+                switch (cellType) {
+                    case WALL:
+                        if (wallSprite != null) {
+                            gc.drawImage(wallSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        } else {
+                            // Fallback: Mur indestructible
+                            gc.setFill(Color.DARKGRAY);
+                            gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        }
+                        break;
 
-                // Grille
-                gc.setStroke(Color.BLACK);
-                gc.setLineWidth(1);
-                gc.strokeRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
-
-                // Marqueurs spéciaux pour les murs fixes
-                if (x % 2 == 0 && y % 2 == 0 && levelData[y][x] == WALL) {
-                    gc.setFill(Color.BLACK);
-                    gc.fillRect(cellX + TILE_SIZE/4, cellY + TILE_SIZE/4, TILE_SIZE/2, TILE_SIZE/2);
+                    case DESTRUCTIBLE_WALL:
+                        if (breakableWallSprite != null) {
+                            gc.drawImage(breakableWallSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        } else {
+                            // Fallback: Mur destructible
+                            gc.setFill(Color.BROWN);
+                            gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        }
+                        break;
                 }
             }
         }
 
         // Dessiner les positions des joueurs
-        gc.setFill(Color.BLUE);
-        gc.fillOval(player1X * TILE_SIZE + 5, player1Y * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-        gc.setFill(Color.WHITE);
-        gc.fillText("1", player1X * TILE_SIZE + TILE_SIZE/2 - 3, player1Y * TILE_SIZE + TILE_SIZE/2 + 3);
+        drawPlayerPosition(player1X, player1Y, Color.BLUE, "1");
+        drawPlayerPosition(player2X, player2Y, Color.RED, "2");
 
-        gc.setFill(Color.RED);
-        gc.fillOval(player2X * TILE_SIZE + 5, player2Y * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-        gc.setFill(Color.WHITE);
-        gc.fillText("2", player2X * TILE_SIZE + TILE_SIZE/2 - 3, player2Y * TILE_SIZE + TILE_SIZE/2 + 3);
+        // Dessiner la grille
+        gc.setStroke(Color.DARKGRAY);
+        gc.setLineWidth(0.5);
+        for (int x = 0; x <= levelWidth; x++) {
+            gc.strokeLine(x * TILE_SIZE, 0, x * TILE_SIZE, levelHeight * TILE_SIZE);
+        }
+        for (int y = 0; y <= levelHeight; y++) {
+            gc.strokeLine(0, y * TILE_SIZE, levelWidth * TILE_SIZE, y * TILE_SIZE);
+        }
+    }
+
+    /**
+     * Dessine la position d'un joueur
+     */
+    private void drawPlayerPosition(int x, int y, Color color, String playerNumber) {
+        int cellX = x * TILE_SIZE;
+        int cellY = y * TILE_SIZE;
+
+        // D'abord dessiner la tuile de fond
+        if (tileSprite != null) {
+            gc.drawImage(tileSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+        } else {
+            // Fallback: Damier
+            gc.setFill((x + y) % 2 == 0 ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker());
+            gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+        }
+
+        // Utiliser le sprite du joueur s'il est disponible
+        Image playerSprite = playerNumber.equals("1") ? player1Sprite : player2Sprite;
+        
+        if (playerSprite != null) {
+            gc.drawImage(playerSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+        } else {
+            // Fallback: Dessin simple
+            gc.setFill(color);
+            gc.fillOval(cellX + 5, cellY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeOval(cellX + 5, cellY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+            
+            // Numéro du joueur
+            gc.setFill(Color.WHITE);
+            gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 14));
+            gc.fillText(playerNumber, cellX + TILE_SIZE / 2 - 4, cellY + TILE_SIZE / 2 + 5);
+        }
     }
 
     /**
@@ -696,48 +828,39 @@ public class LevelEditorController implements Initializable {
     @FXML
     private void returnToMainMenu() {
         try {
-            // Confirmer si des modifications non sauvegardées existent
-            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmAlert.setTitle("Retour au menu");
-            confirmAlert.setHeaderText("Retourner au menu principal ?");
-            confirmAlert.setContentText("Les modifications non sauvegardées seront perdues.");
-
-            if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-                // Supprimer la sauvegarde temporaire
-                deleteTemporaryState();
-                
-                // Charger la scène du menu principal
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
-                Parent menuRoot = loader.load();
-                
-                // Obtenir le contrôleur du menu pour pouvoir actualiser les éléments si nécessaire
-                MainMenuController menuController = loader.getController();
-                
-                // Changer de scène
-                Stage stage = (Stage) returnButton.getScene().getWindow();
-                Scene menuScene = new Scene(menuRoot, 800, 600);
-                
-                // Charger le CSS s'il existe
-                try {
-                    var cssResource = getClass().getResource("/com/example/bomberman/style.css");
-                    if (cssResource != null) {
-                        menuScene.getStylesheets().add(cssResource.toExternalForm());
-                    }
-                } catch (Exception cssError) {
-                    System.out.println("CSS non trouvé, continuation sans styles");
+            // Sauvegarder l'état actuel
+            saveTemporaryState();
+            
+            // Arrêter la musique de l'éditeur
+            soundManager.stopBackgroundMusic();
+            
+            // Charger le menu principal
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
+            Parent menuRoot = loader.load();
+            
+            Stage stage = (Stage) returnButton.getScene().getWindow();
+            Scene menuScene = new Scene(menuRoot, 800, 600);
+            
+            // Charger le CSS s'il existe
+            try {
+                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                if (cssResource != null) {
+                    menuScene.getStylesheets().add(cssResource.toExternalForm());
                 }
-                
-                stage.setScene(menuScene);
-                stage.setTitle("Super Bomberman - Menu principal");
-                
-                // Informer le contrôleur du menu que nous revenons de l'éditeur
-                menuController.returnToMenu();
-                
-                System.out.println("Retour au menu principal");
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé, continuation sans styles");
             }
-        } catch (IOException e) {
+            
+            stage.setScene(menuScene);
+            stage.setTitle("Super Bomberman - Menu Principal");
+            
+            // Jouer la musique du menu
+            soundManager.playBackgroundMusic("menu");
+            
+            System.out.println("Retour au menu principal");
+        } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger le menu principal.", Alert.AlertType.ERROR);
+            showAlert("Erreur", "Impossible de retourner au menu principal: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
