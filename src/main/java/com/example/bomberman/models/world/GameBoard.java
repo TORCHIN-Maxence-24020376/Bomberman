@@ -1,7 +1,9 @@
 package com.example.bomberman.models.world;
 
 import com.example.bomberman.models.entities.PowerUp;
+import com.example.bomberman.utils.SpriteManager;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
@@ -24,6 +26,13 @@ public class GameBoard {
     private int width, height;
     private static final long EXPLOSION_DURATION = 1000; // 1 seconde
     private static final double POWERUP_SPAWN_CHANCE = 0.3; // 30% de chance
+    
+    // Sprites
+    private SpriteManager spriteManager;
+    private Image tileSprite;
+    private Image wallSprite;
+    private Image breakableWallSprite;
+    private Image explosionSprite;
 
     /**
      * Constructeur par défaut avec dimensions standard
@@ -41,7 +50,22 @@ public class GameBoard {
         this.board = new int[height][width];
         this.explosionTime = new long[height][width];
         this.powerUps = new ArrayList<>();
+        
+        // Initialiser le gestionnaire de sprites et charger les sprites
+        this.spriteManager = SpriteManager.getInstance();
+        loadSprites();
+        
         initializeBoard();
+    }
+    
+    /**
+     * Charge les sprites nécessaires
+     */
+    private void loadSprites() {
+        tileSprite = spriteManager.loadSprite("tile");
+        wallSprite = spriteManager.loadSprite("unbreakable_wall");
+        breakableWallSprite = spriteManager.loadSprite("breakable_wall");
+        explosionSprite = spriteManager.loadSprite("explosion");
     }
 
     /**
@@ -240,100 +264,132 @@ public class GameBoard {
 
                 switch (board[y][x]) {
                     case EMPTY:
-                        // Sol avec effet de damier subtil
-                        Color grassColor = ((x + y) % 2 == 0) ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker();
-                        gc.setFill(grassColor);
-                        gc.fillRect(cellX, cellY, tileSize, tileSize);
+                        // Utiliser le sprite de tuile si disponible
+                        if (tileSprite != null) {
+                            gc.drawImage(tileSprite, cellX, cellY, tileSize, tileSize);
+                        } else {
+                            // Fallback: Sol avec effet de damier subtil
+                            Color grassColor = ((x + y) % 2 == 0) ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker();
+                            gc.setFill(grassColor);
+                            gc.fillRect(cellX, cellY, tileSize, tileSize);
+                        }
                         break;
 
                     case WALL:
-                        // Mur indestructible avec effet 3D
-                        gc.setFill(Color.DARKGRAY);
-                        gc.fillRect(cellX, cellY, tileSize, tileSize);
+                        // Utiliser le sprite de mur si disponible
+                        if (wallSprite != null) {
+                            gc.drawImage(wallSprite, cellX, cellY, tileSize, tileSize);
+                        } else {
+                            // Fallback: Mur indestructible avec effet 3D
+                            gc.setFill(Color.DARKGRAY);
+                            gc.fillRect(cellX, cellY, tileSize, tileSize);
 
-                        // Effet de relief
-                        gc.setFill(Color.LIGHTGRAY);
-                        gc.fillRect(cellX, cellY, tileSize - 2, tileSize - 2);
-                        gc.setFill(Color.GRAY);
-                        gc.fillRect(cellX + 2, cellY + 2, tileSize - 4, tileSize - 4);
+                            // Effet de relief
+                            gc.setFill(Color.LIGHTGRAY);
+                            gc.fillRect(cellX, cellY, tileSize - 2, tileSize - 2);
+                            gc.setFill(Color.GRAY);
+                            gc.fillRect(cellX + 2, cellY + 2, tileSize - 4, tileSize - 4);
 
-                        gc.setStroke(Color.BLACK);
-                        gc.setLineWidth(2);
-                        gc.strokeRect(cellX, cellY, tileSize, tileSize);
+                            gc.setStroke(Color.BLACK);
+                            gc.setLineWidth(2);
+                            gc.strokeRect(cellX, cellY, tileSize, tileSize);
+                        }
                         break;
 
                     case DESTRUCTIBLE_WALL:
-                        // Mur destructible avec texture
-                        gc.setFill(Color.BROWN);
-                        gc.fillRect(cellX, cellY, tileSize, tileSize);
+                        // Utiliser le sprite de mur destructible si disponible
+                        if (breakableWallSprite != null) {
+                            gc.drawImage(breakableWallSprite, cellX, cellY, tileSize, tileSize);
+                        } else {
+                            // Fallback: Mur destructible avec texture
+                            gc.setFill(Color.BROWN);
+                            gc.fillRect(cellX, cellY, tileSize, tileSize);
 
-                        // Texture de brique
-                        gc.setStroke(Color.DARKRED);
-                        gc.setLineWidth(1);
+                            // Texture de brique
+                            gc.setStroke(Color.DARKRED);
+                            gc.setLineWidth(1);
 
-                        // Lignes horizontales
-                        for (int i = 0; i < 3; i++) {
-                            gc.strokeLine(cellX, cellY + i * tileSize/3, cellX + tileSize, cellY + i * tileSize/3);
+                            // Lignes horizontales
+                            for (int i = 0; i < 3; i++) {
+                                gc.strokeLine(cellX, cellY + i * tileSize/3, cellX + tileSize, cellY + i * tileSize/3);
+                            }
+
+                            // Lignes verticales décalées
+                            for (int i = 0; i < 2; i++) {
+                                int offset = (i % 2 == 0) ? 0 : tileSize/2;
+                                gc.strokeLine(cellX + tileSize/2 + offset, cellY + i * tileSize/3,
+                                        cellX + tileSize/2 + offset, cellY + (i + 1) * tileSize/3);
+                            }
+
+                            gc.setStroke(Color.BLACK);
+                            gc.setLineWidth(2);
+                            gc.strokeRect(cellX, cellY, tileSize, tileSize);
                         }
-
-                        // Lignes verticales décalées
-                        for (int i = 0; i < 2; i++) {
-                            int offset = (i % 2 == 0) ? 0 : tileSize/2;
-                            gc.strokeLine(cellX + tileSize/2 + offset, cellY + i * tileSize/3,
-                                    cellX + tileSize/2 + offset, cellY + (i + 1) * tileSize/3);
-                        }
-
-                        gc.setStroke(Color.BLACK);
-                        gc.setLineWidth(2);
-                        gc.strokeRect(cellX, cellY, tileSize, tileSize);
                         break;
 
                     case BOMB:
                         // Sol visible sous la bombe
-                        Color grassColorBomb = ((x + y) % 2 == 0) ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker();
-                        gc.setFill(grassColorBomb);
-                        gc.fillRect(cellX, cellY, tileSize, tileSize);
+                        if (tileSprite != null) {
+                            gc.drawImage(tileSprite, cellX, cellY, tileSize, tileSize);
+                        } else {
+                            Color grassColorBomb = ((x + y) % 2 == 0) ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker();
+                            gc.setFill(grassColorBomb);
+                            gc.fillRect(cellX, cellY, tileSize, tileSize);
+                        }
                         break;
 
                     case EXPLOSION:
                         // Vérifier si l'explosion doit disparaître
                         if (currentTime - explosionTime[y][x] > EXPLOSION_DURATION) {
                             board[y][x] = EMPTY;
-                            Color grassColorExp = ((x + y) % 2 == 0) ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker();
-                            gc.setFill(grassColorExp);
+                            if (tileSprite != null) {
+                                gc.drawImage(tileSprite, cellX, cellY, tileSize, tileSize);
+                            } else {
+                                Color grassColorExp = ((x + y) % 2 == 0) ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker();
+                                gc.setFill(grassColorExp);
+                                gc.fillRect(cellX, cellY, tileSize, tileSize);
+                            }
                         } else {
-                            // Animation d'explosion
-                            double progress = (double)(currentTime - explosionTime[y][x]) / EXPLOSION_DURATION;
+                            // Utiliser le sprite d'explosion si disponible
+                            if (explosionSprite != null) {
+                                // Animation simple: faire pulser l'explosion
+                                double progress = (double)(currentTime - explosionTime[y][x]) / EXPLOSION_DURATION;
+                                int size = (int)(tileSize * (1 - progress * 0.2));
+                                int offset = (tileSize - size) / 2;
+                                gc.drawImage(explosionSprite, cellX + offset, cellY + offset, size, size);
+                            } else {
+                                // Fallback: Animation d'explosion
+                                double progress = (double)(currentTime - explosionTime[y][x]) / EXPLOSION_DURATION;
 
-                            // Couleur qui évolue
-                            Color explosionColor = Color.YELLOW.interpolate(Color.ORANGE, progress);
-                            gc.setFill(explosionColor);
-                        }
-                        gc.fillRect(cellX, cellY, tileSize, tileSize);
+                                // Couleur qui évolue
+                                Color explosionColor = Color.YELLOW.interpolate(Color.ORANGE, progress);
+                                gc.setFill(explosionColor);
+                                gc.fillRect(cellX, cellY, tileSize, tileSize);
 
-                        if (board[y][x] == EXPLOSION) {
-                            // Effet d'explosion animé avec étincelles
-                            gc.setFill(Color.RED);
-                            double progress = (double)(currentTime - explosionTime[y][x]) / EXPLOSION_DURATION;
-                            int explosionSize = (int)(tileSize * (1 - progress * 0.3));
-                            int offset = (tileSize - explosionSize) / 2;
-                            gc.fillRect(cellX + offset, cellY + offset, explosionSize, explosionSize);
+                                // Effet d'explosion animé avec étincelles
+                                gc.setFill(Color.RED);
+                                int explosionSize = (int)(tileSize * (1 - progress * 0.3));
+                                int offset = (tileSize - explosionSize) / 2;
+                                gc.fillRect(cellX + offset, cellY + offset, explosionSize, explosionSize);
 
-                            // Étincelles
-                            gc.setFill(Color.WHITE);
-                            for (int i = 0; i < 3; i++) {
-                                int sparkleX = cellX + (int)(Math.random() * tileSize);
-                                int sparkleY = cellY + (int)(Math.random() * tileSize);
-                                gc.fillOval(sparkleX, sparkleY, 3, 3);
+                                // Étincelles
+                                gc.setFill(Color.WHITE);
+                                for (int i = 0; i < 3; i++) {
+                                    int sparkleX = cellX + (int)(Math.random() * tileSize);
+                                    int sparkleY = cellY + (int)(Math.random() * tileSize);
+                                    gc.fillOval(sparkleX, sparkleY, 3, 3);
+                                }
                             }
                         }
                         break;
                 }
 
-                // Grille subtile
-                gc.setStroke(Color.DARKGREEN.darker());
-                gc.setLineWidth(0.5);
-                gc.strokeRect(cellX, cellY, tileSize, tileSize);
+                // Grille subtile (uniquement si on n'utilise pas de sprites)
+                if (tileSprite == null) {
+                    gc.setStroke(Color.DARKGREEN.darker());
+                    gc.setLineWidth(0.5);
+                    gc.strokeRect(cellX, cellY, tileSize, tileSize);
+                }
             }
         }
 

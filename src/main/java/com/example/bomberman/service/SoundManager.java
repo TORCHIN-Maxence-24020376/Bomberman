@@ -175,7 +175,7 @@ public class SoundManager {
                 
                 // Retourner au début
                 Class<?> durationType = Class.forName("javafx.util.Duration");
-                Object zeroDuration = durationType.getMethod("ZERO").invoke(null);
+                Object zeroDuration = durationType.getField("ZERO").get(null);
                 mediaPlayerClass.getMethod("seek", durationType).invoke(player, zeroDuration);
                 
                 // Jouer

@@ -69,6 +69,10 @@ public class GameController implements Initializable {
     private boolean isTestMode = false;
     private Stage levelEditorStage = null;
 
+    // Variables pour stocker l'état de la musique
+    private String currentMusic = "game_music";
+    private boolean wasPlayingMusic = true;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = gameCanvas.getGraphicsContext2D();
@@ -100,8 +104,12 @@ public class GameController implements Initializable {
 
         updateUI();
 
+        // Choisir aléatoirement entre les deux musiques du jeu
+        String[] musics = { "game_music_A", "game_music_B", "game_music_C" };
+currentMusic = musics[new Random().nextInt(musics.length)];
+        
         // Jouer la musique de jeu
-        soundManager.playBackgroundMusic("game_music");
+        soundManager.playBackgroundMusic(currentMusic);
     }
 
     /**
@@ -198,6 +206,8 @@ public class GameController implements Initializable {
      */
     private void showGameOverScreen(String message) {
         soundManager.stopBackgroundMusic();
+        // Jouer la musique de résultat
+        soundManager.playBackgroundMusic("result");
 
         Alert gameOverAlert = new Alert(Alert.AlertType.INFORMATION);
         gameOverAlert.setTitle("Fin de partie");
@@ -264,6 +274,12 @@ public class GameController implements Initializable {
             if (gameStatusLabel != null) {
                 gameStatusLabel.setText("En cours");
             }
+            
+            // Restaurer la musique du jeu
+            soundManager.stopBackgroundMusic();
+            if (wasPlayingMusic) {
+                soundManager.playBackgroundMusic(currentMusic);
+            }
         } else {
             // Pause
             isPaused = true;
@@ -272,6 +288,11 @@ public class GameController implements Initializable {
             if (gameStatusLabel != null) {
                 gameStatusLabel.setText("PAUSE");
             }
+            
+            // Sauvegarder l'état de la musique et jouer la musique de l'éditeur
+            wasPlayingMusic = soundManager.isMusicEnabled();
+            soundManager.stopBackgroundMusic();
+            soundManager.playBackgroundMusic("editor_music");
         }
     }
 
@@ -583,8 +604,12 @@ public class GameController implements Initializable {
             
             updateUI();
             
-            // Jouer la musique de jeu
-            soundManager.playBackgroundMusic("/sounds/game_music.mp3");
+            // Choisir aléatoirement entre les deux musiques du jeu
+            boolean useAlternateMusic = Math.random() > 0.5;
+            currentMusic = useAlternateMusic ? "game_music_B" : "game_music";
+            
+            // Jouer la musique du jeu
+            soundManager.playBackgroundMusic(currentMusic);
             
             System.out.println("Niveau personnalisé chargé : " + levelPath);
         } else {
@@ -643,6 +668,9 @@ public class GameController implements Initializable {
                 
                 levelEditorStage.setScene(editorScene);
                 levelEditorStage.setTitle("Super Bomberman - Éditeur de niveaux");
+                
+                // Jouer la musique de l'éditeur
+                soundManager.playBackgroundMusic("editor_music");
                 
                 System.out.println("Retour à l'éditeur de niveaux");
             } catch (IOException e) {

@@ -246,6 +246,7 @@ public class Player extends MovableEntity {
     public void bombExploded() {
         if (currentBombs > 0) {
             currentBombs--;
+            SoundManager.getInstance().playSound("bomb_explode");
         }
     }
 
