@@ -24,109 +24,115 @@
         </VBox>
     </top>
 
-    <!-- Centre avec tableau des profils -->
+    <!-- Centre avec liste scrollable des profils -->
     <center>
-        <VBox spacing="10" styleClass="main-content">
+        <VBox spacing="15" styleClass="main-content">
             <padding>
                 <Insets top="20" bottom="20" left="20" right="20" />
             </padding>
 
-            <Label text="Profils existants" styleClass="section-title">
-                <font>
-                    <Font name="System Bold" size="16.0" />
-                </font>
-            </Label>
-
-            <TableView fx:id="profilesTable" prefHeight="200" styleClass="profiles-table">
-                <columns>
-                    <TableColumn fx:id="firstNameColumn" text="Prénom" prefWidth="100" />
-                    <TableColumn fx:id="lastNameColumn" text="Nom" prefWidth="100" />
-                    <TableColumn fx:id="gamesPlayedColumn" text="Parties" prefWidth="80" />
-                    <TableColumn fx:id="gamesWonColumn" text="Victoires" prefWidth="80" />
-                    <TableColumn fx:id="winPercentageColumn" text="% Victoires" prefWidth="90" />
-                </columns>
-            </TableView>
-
-            <!-- Boutons d'action pour le tableau -->
-            <HBox alignment="CENTER" spacing="10" styleClass="table-actions">
-                <Button fx:id="editButton" text="Modifier" styleClass="action-button" disable="true" />
-                <Button fx:id="deleteButton" text="Supprimer" styleClass="danger-button" disable="true" />
-                <Button text="Réinitialiser Stats" onAction="#resetStats" styleClass="warning-button" />
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Profils disponibles" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="18.0" />
+                    </font>
+                </Label>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="Nouveau Profil" onAction="#newProfile" styleClass="primary-button">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+                <Button text="Personnaliser les contrôles" onAction="#showControlsDialogForSelected" styleClass="info-button">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+                <Button text="Recharger" onAction="#reloadProfiles" styleClass="info-button" />
             </HBox>
-        </VBox>
-    </center>
-
-    <!-- Panneau latéral pour l'ajout/modification -->
-    <right>
-        <VBox spacing="15" prefWidth="300" styleClass="form-panel">
-            <padding>
-                <Insets top="20" bottom="20" left="20" right="20" />
-            </padding>
-
-            <Label text="Ajouter/Modifier un Profil" styleClass="section-title">
-                <font>
-                    <Font name="System Bold" size="16.0" />
-                </font>
-            </Label>
 
             <Separator />
 
-            <!-- Formulaire -->
-            <VBox spacing="10" styleClass="profile-form">
-                <VBox spacing="5">
-                    <Label text="Prénom *" styleClass="field-label">
+            <!-- Liste scrollable des profils -->
+            <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" styleClass="profiles-scroll">
+                <VBox fx:id="profilesListContainer" spacing="10" styleClass="profiles-list">
+                    <!-- Les profils seront ajoutés ici dynamiquement -->
+                </VBox>
+            </ScrollPane>
+            
+            <!-- Formulaire pour ajouter/modifier un profil -->
+            <VBox spacing="15" styleClass="form-panel">
+                <padding>
+                    <Insets top="15" bottom="15" left="15" right="15" />
+                </padding>
+                
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label fx:id="formTitleLabel" text="Ajouter un nouveau profil" styleClass="section-title">
+                        <font>
+                            <Font name="System Bold" size="16.0" />
+                        </font>
+                    </Label>
+                    <Region HBox.hgrow="ALWAYS" />
+                </HBox>
+
+                <Separator />
+
+                <!-- Formulaire -->
+                <GridPane hgap="15" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="100" />
+                        <ColumnConstraints hgrow="ALWAYS" />
+                        <ColumnConstraints />
+                    </columnConstraints>
+
+                    <Label text="Prénom *" styleClass="field-label" GridPane.rowIndex="0" GridPane.columnIndex="0">
                         <font>
                             <Font name="System Bold" size="12.0" />
                         </font>
                     </Label>
                     <TextField fx:id="firstNameField" promptText="Entrez le prénom"
-                               styleClass="form-field" />
-                </VBox>
+                               styleClass="form-field" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2" />
 
-                <VBox spacing="5">
-                    <Label text="Nom *" styleClass="field-label">
+                    <Label text="Nom *" styleClass="field-label" GridPane.rowIndex="1" GridPane.columnIndex="0">
                         <font>
                             <Font name="System Bold" size="12.0" />
                         </font>
                     </Label>
                     <TextField fx:id="lastNameField" promptText="Entrez le nom"
-                               styleClass="form-field" />
-                </VBox>
+                               styleClass="form-field" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="2" />
 
-                <VBox spacing="5">
-                    <Label text="Avatar" styleClass="field-label">
+                    <Label text="Avatar" styleClass="field-label" GridPane.rowIndex="2" GridPane.columnIndex="0">
                         <font>
                             <Font name="System Bold" size="12.0" />
                         </font>
                     </Label>
-                    <HBox spacing="5" alignment="CENTER_LEFT">
-                        <TextField fx:id="avatarField" promptText="Chemin de l'avatar"
-                                   HBox.hgrow="ALWAYS" styleClass="form-field" />
-                        <Button fx:id="browseAvatarButton" text="Parcourir"
-                                styleClass="browse-button" />
-                    </HBox>
-                </VBox>
+                    <TextField fx:id="avatarField" promptText="Chemin de l'avatar"
+                               styleClass="form-field" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                    <Button fx:id="browseAvatarButton" text="Parcourir" onAction="#browseAvatar"
+                            styleClass="browse-button" GridPane.rowIndex="2" GridPane.columnIndex="2" />
 
-                <VBox spacing="5">
-                    <Label text="Thème" styleClass="field-label">
+                    <Label text="Thème" styleClass="field-label" GridPane.rowIndex="3" GridPane.columnIndex="0">
                         <font>
                             <Font name="System Bold" size="12.0" />
                         </font>
                     </Label>
-                    <ComboBox fx:id="themeCombo" prefWidth="200" styleClass="form-combo" />
-                </VBox>
-            </VBox>
+                    <ComboBox fx:id="themeCombo" prefWidth="200" styleClass="form-combo" 
+                              GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2" />
+                </GridPane>
 
-            <Separator />
-
-            <!-- Boutons d'action -->
-            <VBox spacing="10" styleClass="form-actions">
-                <Button fx:id="addButton" text="Ajouter Profil" prefWidth="200"
-                        styleClass="primary-button">
-                    <font>
-                        <Font name="System Bold" size="14.0" />
-                    </font>
-                </Button>
+                <HBox alignment="CENTER" spacing="15" styleClass="form-actions">
+                    <padding>
+                        <Insets top="15" />
+                    </padding>
+                    <Button fx:id="addButton" text="Ajouter Profil" onAction="#addProfile"
+                            styleClass="primary-button" prefWidth="150">
+                        <font>
+                            <Font name="System Bold" size="14.0" />
+                        </font>
+                    </Button>
+                    <Button fx:id="cancelButton" text="Annuler" onAction="#cancelEdit"
+                            styleClass="secondary-button" prefWidth="150" />
+                </HBox>
 
                 <Label text="Note: Les champs marqués d'un * sont obligatoires"
                        styleClass="help-text" wrapText="true">
@@ -136,16 +142,15 @@
                 </Label>
             </VBox>
 
-            <Region VBox.vgrow="ALWAYS" />
-
             <!-- Bouton fermer -->
-            <Button fx:id="closeButton" text="Fermer" prefWidth="200"
-                    styleClass="secondary-button">
-                <font>
-                    <Font size="14.0" />
-                </font>
-            </Button>
+            <HBox alignment="CENTER_RIGHT">
+                <Button fx:id="closeButton" text="Fermer" onAction="#closeWindow"
+                        styleClass="secondary-button" prefWidth="150">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Button>
+            </HBox>
         </VBox>
-    </right>
-
+    </center>
 </BorderPane>

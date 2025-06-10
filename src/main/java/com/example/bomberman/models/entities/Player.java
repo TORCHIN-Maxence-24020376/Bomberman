@@ -15,7 +15,6 @@ public class Player extends MovableEntity {
     private int maxBombs;
     private int currentBombs;
     private int bombRange;
-    private PlayerProfile profile;
 
     // Nouvelles propriétés pour les power-ups
     private int speed; // Vitesse de déplacement (1-5)
@@ -259,11 +258,6 @@ public class Player extends MovableEntity {
             lives = 0;
             SoundManager.getInstance().playSound("player_death");
         }
-
-        // Mettre à jour les statistiques du profil
-        if (profile != null && !isAlive()) {
-            // La défaite sera enregistrée par le gestionnaire de jeu
-        }
     }
 
     /**
@@ -295,42 +289,40 @@ public class Player extends MovableEntity {
      */
     public String getPowerUpDescription() {
         StringBuilder desc = new StringBuilder();
-        desc.append("Bombes: ").append(maxBombs);
-        desc.append(" | Portée: ").append(bombRange);
-        desc.append(" | Vitesse: ").append(speed);
-        if (canKickBombs) desc.append(" | Kick");
-        if (hasSkull) desc.append(" | SKULL");
-        return desc.toString();
+        if (speed > 1) desc.append("Vitesse ").append(speed).append(", ");
+        if (bombRange > 2) desc.append("Portée ").append(bombRange).append(", ");
+        if (maxBombs > 1) desc.append("Bombes ").append(maxBombs).append(", ");
+        if (canKickBombs) desc.append("Kick, ");
+        
+        if (desc.length() > 0) {
+            desc.setLength(desc.length() - 2); // Supprimer la dernière virgule et espace
+            return desc.toString();
+        } else {
+            return "Standard";
+        }
     }
 
-    // Getters et setters
+    // Getters et Setters
     public Color getColor() { return color; }
     public void setColor(Color color) { this.color = color; }
-
+    
     public int getPlayerId() { return playerId; }
     public int getLives() { return lives; }
     public void setLives(int lives) { this.lives = lives; }
-
+    
     public int getBombRange() { return bombRange; }
     public void setBombRange(int range) { this.bombRange = Math.max(1, range); }
-
+    
     public int getMaxBombs() { return maxBombs; }
     public void setMaxBombs(int maxBombs) { this.maxBombs = Math.max(1, maxBombs); }
-
+    
     public int getCurrentBombs() { return currentBombs; }
-
+    
     public int getSpeed() { return speed; }
     public void setSpeed(int speed) { this.speed = Math.max(1, Math.min(5, speed)); }
-
+    
     public boolean canKickBombs() { return canKickBombs; }
     public void setCanKickBombs(boolean canKick) { this.canKickBombs = canKick; }
-
+    
     public boolean hasSkull() { return hasSkull; }
-
-    public PlayerProfile getProfile() { return profile; }
-    public void setProfile(PlayerProfile profile) {
-        this.profile = profile;
-        System.out.println("Profil assigné au joueur " + playerId + ": " +
-                (profile != null ? profile.getFullName() : "Aucun"));
-    }
 }

@@ -1,6 +1,6 @@
 package com.example.bomberman;
-import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
+import com.example.bomberman.service.UserPreferences;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -18,8 +18,11 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws IOException {
         try {
             // Initialiser les gestionnaires
-            ProfileManager.getInstance();
             SoundManager soundManager = SoundManager.getInstance();
+            UserPreferences userPreferences = UserPreferences.getInstance();
+            
+            // Appliquer les préférences utilisateur
+            userPreferences.applyPreferences();
 
             // Essayer de charger le menu principal d'abord
             FXMLLoader menuLoader = null;
@@ -27,7 +30,7 @@ public class Main extends Application {
 
             try {
                 menuLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/menu-view.fxml"));
-                scene = new Scene(menuLoader.load(), 800, 600);
+                scene = new Scene(menuLoader.load(), 1000, 900);
                 System.out.println("Menu principal chargé avec succès !");
             } catch (Exception menuError) {
                 System.out.println("Impossible de charger le menu, chargement du jeu direct...");
@@ -35,13 +38,13 @@ public class Main extends Application {
 
                 // Fallback sur le jeu original
                 FXMLLoader gameLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/game-view.fxml"));
-                scene = new Scene(gameLoader.load(), 800, 600);
+                scene = new Scene(gameLoader.load(), 1000, 900);
                 System.out.println("Jeu direct chargé !");
             }
 
             // Ajouter le CSS si disponible
             try {
-                var cssResource = getClass().getResource("/com/example/bomberman/styles.css");
+                var cssResource = getClass().getResource("/com/example/bomberman/view/styles.css");
                 if (cssResource != null) {
                     scene.getStylesheets().add(cssResource.toExternalForm());
                     System.out.println("Styles CSS chargés !");
@@ -54,14 +57,14 @@ public class Main extends Application {
             primaryStage.setTitle("Super Bomberman - Version Améliorée");
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
-            primaryStage.setMinWidth(800);
-            primaryStage.setMinHeight(600);
+            primaryStage.setMinWidth(1000);
+            primaryStage.setMinHeight(900);
 
             // Gestionnaire de fermeture propre
             primaryStage.setOnCloseRequest(event -> {
-                // Sauvegarder les profils
-                ProfileManager.getInstance().saveProfiles();
-
+                // Sauvegarder les préférences utilisateur
+                userPreferences.savePreferences();
+                
                 // Arrêter la musique
                 soundManager.stopBackgroundMusic();
 
@@ -73,15 +76,17 @@ public class Main extends Application {
             // Afficher la fenêtre
             primaryStage.show();
 
-            // Démarrer la musique du menu après l'affichage de la fenêtre
-            Platform.runLater(() -> {
-                try {
-                    Thread.sleep(500); // Attendre 500ms pour que la fenêtre soit bien initialisée
-                    soundManager.playBackgroundMusic("menu");
-                } catch (Exception e) {
-                    System.err.println("Erreur lors du démarrage de la musique: " + e.getMessage());
-                }
-            });
+            // Démarrer la musique du menu après l'affichage de la fenêtre si activée
+            if (userPreferences.isMusicEnabled()) {
+                Platform.runLater(() -> {
+                    try {
+                        Thread.sleep(500); // Attendre 500ms pour que la fenêtre soit bien initialisée
+                        soundManager.playBackgroundMusic("menu");
+                    } catch (Exception e) {
+                        System.err.println("Erreur lors du démarrage de la musique: " + e.getMessage());
+                    }
+                });
+            }
 
             System.out.println("Super Bomberman lancé avec succès !");
 
@@ -104,8 +109,10 @@ public class Main extends Application {
     public void stop() throws Exception {
         super.stop();
 
-        // Nettoyage final
-        ProfileManager.getInstance().saveProfiles();
+        // Sauvegarder les préférences utilisateur
+        UserPreferences.getInstance().savePreferences();
+        
+        // Arrêter la musique
         SoundManager.getInstance().stopBackgroundMusic();
 
         System.out.println("Application fermée proprement.");

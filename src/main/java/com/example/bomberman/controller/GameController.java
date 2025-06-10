@@ -2,10 +2,8 @@ package com.example.bomberman.controller;
 
 import com.example.bomberman.models.entities.Bomb;
 import com.example.bomberman.models.entities.Player;
-import com.example.bomberman.models.entities.PlayerProfile;
 import com.example.bomberman.models.world.Game;
 import com.example.bomberman.models.world.GameBoard;
-import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
@@ -53,7 +51,6 @@ public class GameController implements Initializable {
 
     // Utilitaires
     private SoundManager soundManager;
-    private ProfileManager profileManager;
 
     // Configuration
     private static final int TILE_SIZE = 40;
@@ -78,7 +75,6 @@ public class GameController implements Initializable {
         gc = gameCanvas.getGraphicsContext2D();
         pressedKeys = new HashSet<>();
         soundManager = SoundManager.getInstance();
-        profileManager = ProfileManager.getInstance();
 
         initializeGame();
         setupEventHandlers();
@@ -106,7 +102,7 @@ public class GameController implements Initializable {
 
         // Choisir aléatoirement entre les deux musiques du jeu
         String[] musics = { "game_music_A", "game_music_B", "game_music_C" };
-currentMusic = musics[new Random().nextInt(musics.length)];
+        currentMusic = musics[new Random().nextInt(musics.length)];
         
         // Jouer la musique de jeu
         soundManager.playBackgroundMusic(currentMusic);
@@ -119,16 +115,6 @@ currentMusic = musics[new Random().nextInt(musics.length)];
         // Événements clavier
         gameCanvas.setOnKeyPressed(this::handleKeyPressed);
         gameCanvas.setOnKeyReleased(this::handleKeyReleased);
-    }
-
-    /**
-     * Définit les profils des joueurs
-     */
-    public void setPlayerProfiles(PlayerProfile profile1, PlayerProfile profile2) {
-        if (game != null) {
-            game.setPlayerProfiles(profile1, profile2);
-            updateUI();
-        }
     }
 
     /**
@@ -214,14 +200,17 @@ currentMusic = musics[new Random().nextInt(musics.length)];
         gameOverAlert.setHeaderText(message);
 
         long gameTime = getGameTime();
-        String timeText = String.format("Temps de jeu: %d:%02d", gameTime / 60, gameTime % 60);
+        String timeText;
+        if (gameTime < 0) {
+            timeText = "Temps de jeu: 0:00";
+        } else {
+            timeText = String.format("Temps de jeu: %d:%02d", gameTime / 60, gameTime % 60);
+        }
 
         StringBuilder content = new StringBuilder();
         content.append(timeText).append("\n\n");
         content.append("Score Joueur 1: ").append(game.getPlayer1Score()).append("\n");
-        content.append("Score Joueur 2: ").append(game.getPlayer2Score()).append("\n");
-        content.append("Bombes placées: ").append(game.getBombsPlaced()).append("\n");
-        content.append("Murs détruits: ").append(game.getWallsDestroyed());
+        content.append("Score Joueur 2: ").append(game.getPlayer2Score());
 
         gameOverAlert.setContentText(content.toString());
 
@@ -230,9 +219,8 @@ currentMusic = musics[new Random().nextInt(musics.length)];
             ButtonType returnToEditorButton = new ButtonType("Retour à l'éditeur");
             gameOverAlert.getButtonTypes().setAll(returnToEditorButton);
             
-            gameOverAlert.showAndWait().ifPresent(response -> {
-                returnToLevelEditor();
-            });
+            gameOverAlert.showAndWait();
+            returnToLevelEditor();
         } else {
             ButtonType newGameButton = new ButtonType("Nouvelle partie");
             ButtonType menuButton = new ButtonType("Menu principal");
@@ -489,31 +477,27 @@ currentMusic = musics[new Random().nextInt(musics.length)];
         gc.setFont(javafx.scene.text.Font.font("Arial", 14));
 
         if (game.getPlayer1() != null) {
-            String player1Info = "Joueur 1 (ZQSD + A) - Vies: " + game.getPlayer1().getLives() +
+            String player1Info = "Joueur 1 (ZQSD + A + E) - Vies: " + game.getPlayer1().getLives() +
                     " - Score: " + game.getPlayer1Score();
             gc.fillText(player1Info, 10, 20);
         }
 
         if (game.getPlayer2() != null) {
-            String player2Info = "Joueur 2 (Flèches + Espace) - Vies: " + game.getPlayer2().getLives() +
+            String player2Info = "Joueur 2 (Flèches + Espace + Ctrl) - Vies: " + game.getPlayer2().getLives() +
                     " - Score: " + game.getPlayer2Score();
             gc.fillText(player2Info, 10, 40);
         }
 
-        // Temps de jeu
-        long gameTime = getGameTime();
-        String timeText = String.format("Temps: %d:%02d", gameTime / 60, gameTime % 60);
-        gc.fillText(timeText, 10, 60);
+        String gameTime = "Temps de jeu: " + formatTime(getGameTime());
+        gc.fillText(gameTime, gameCanvas.getWidth() - 150, 20);
     }
 
     /**
      * Met à jour l'interface utilisateur
      */
     private void updateUI() {
-        Platform.runLater(() -> {
-            updatePlayerInfo();
-            updateHealthBars();
-        });
+        updatePlayerInfo();
+        updateHealthBars();
     }
 
     /**
@@ -521,15 +505,13 @@ currentMusic = musics[new Random().nextInt(musics.length)];
      */
     private void updatePlayerInfo() {
         if (player1InfoLabel != null && game.getPlayer1() != null) {
-            String player1Info = "Joueur 1 - Vies: " + game.getPlayer1().getLives() +
-                    " - Score: " + game.getPlayer1Score();
-            player1InfoLabel.setText(player1Info);
+            player1InfoLabel.setText("Joueur 1 (ZQSD + A + E) - Vies: " + game.getPlayer1().getLives() +
+                    " - Score: " + game.getPlayer1Score());
         }
 
         if (player2InfoLabel != null && game.getPlayer2() != null) {
-            String player2Info = "Joueur 2 - Vies: " + game.getPlayer2().getLives() +
-                    " - Score: " + game.getPlayer2Score();
-            player2InfoLabel.setText(player2Info);
+            player2InfoLabel.setText("Joueur 2 (Flèches + Espace + Ctrl) - Vies: " + game.getPlayer2().getLives() +
+                    " - Score: " + game.getPlayer2Score());
         }
     }
 
@@ -559,63 +541,57 @@ currentMusic = musics[new Random().nextInt(musics.length)];
     }
 
     /**
-     * Calcule le temps de jeu total
+     * Obtient le temps de jeu en secondes
      */
     private long getGameTime() {
-        long currentTime = System.currentTimeMillis();
-        long totalTime = currentTime - gameStartTime - totalPauseTime;
-
-        if (isPaused) {
-            totalTime -= (currentTime - pauseStartTime);
+        if (!gameRunning) {
+            return (pauseStartTime - gameStartTime - totalPauseTime) / 1000;
         }
-
-        return totalTime / 1000; // Retour en secondes
+        
+        long currentTime = System.currentTimeMillis();
+        if (isPaused) {
+            return (pauseStartTime - gameStartTime - totalPauseTime) / 1000;
+        } else {
+            return (currentTime - gameStartTime - totalPauseTime) / 1000;
+        }
+    }
+    
+    /**
+     * Formate le temps en minutes:secondes
+     */
+    private String formatTime(long timeInSeconds) {
+        if (timeInSeconds < 0) {
+            timeInSeconds = 0;
+        }
+        return String.format("%d:%02d", timeInSeconds / 60, timeInSeconds % 60);
     }
 
     /**
-     * Affiche une alerte
+     * Affiche une alerte simple
      */
     private void showAlert(String title, String message, Alert.AlertType type) {
-        try {
-            Alert alert = new Alert(type);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.showAndWait();
-        } catch (Exception e) {
-            System.err.println("Impossible d'afficher l'alerte: " + e.getMessage());
-        }
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     /**
      * Charge un niveau personnalisé depuis un fichier
-     * @param levelPath Chemin vers le fichier de niveau
      */
     public void loadCustomLevel(String levelPath) {
-        if (game == null) {
-            game = new Game();
+        game = new Game();
+        game.loadLevel(levelPath);
+        
+        // Adapter la taille du canvas
+        if (gameCanvas != null) {
+            gameCanvas.setWidth(Math.max(game.getBoard().getWidth() * TILE_SIZE, 800));
+            gameCanvas.setHeight(Math.max(game.getBoard().getHeight() * TILE_SIZE, 600));
         }
         
-        if (game.loadLevel(levelPath)) {
-            gameRunning = true;
-            gameStartTime = System.currentTimeMillis();
-            totalPauseTime = 0;
-            isPaused = false;
-            
-            updateUI();
-            
-            // Choisir aléatoirement entre les deux musiques du jeu
-            boolean useAlternateMusic = Math.random() > 0.5;
-            currentMusic = useAlternateMusic ? "game_music_B" : "game_music";
-            
-            // Jouer la musique du jeu
-            soundManager.playBackgroundMusic(currentMusic);
-            
-            System.out.println("Niveau personnalisé chargé : " + levelPath);
-        } else {
-            showAlert("Erreur", "Impossible de charger le niveau personnalisé.", Alert.AlertType.ERROR);
-            initializeGame(); // Fallback vers un niveau standard
-        }
+        gameRunning = true;
+        updateUI();
     }
 
     /**
@@ -681,7 +657,9 @@ currentMusic = musics[new Random().nextInt(musics.length)];
                 levelEditorStage.setTitle("Super Bomberman - Éditeur de niveaux");
                 
                 // Jouer la musique de l'éditeur
-                soundManager.playBackgroundMusic("editor_music");
+                if (soundManager.isMusicEnabled()) {
+                    soundManager.playBackgroundMusic("editor_music");
+                }
                 
                 System.out.println("Retour à l'éditeur de niveaux");
             } catch (IOException e) {

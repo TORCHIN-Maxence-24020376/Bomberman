@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.canvas.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<?import javafx.scene.text.Font?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.canvas.Canvas?>
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.bomberman.controller.LevelEditorController"
-            styleClass="level-editor">
+<BorderPane styleClass="level-editor" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bomberman.controller.LevelEditorController">
 
     <!-- En-tête avec titre et boutons principaux -->
     <top>
         <VBox styleClass="editor-header">
             <padding>
-                <Insets top="10" bottom="10" left="20" right="20" />
+                <Insets bottom="10" left="20" right="20" top="10" />
             </padding>
 
             <HBox alignment="CENTER" spacing="20">
-                <Label text="Éditeur de Niveaux" styleClass="editor-title">
+                <Label styleClass="editor-title" text="Éditeur de Niveaux">
                     <font>
                         <Font name="System Bold" size="24.0" />
                     </font>
@@ -29,11 +25,58 @@
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <Button fx:id="returnButton" text="Retour au menu" styleClass="action-button" />
-                <Button fx:id="newButton" text="Nouveau" styleClass="action-button" />
-                <Button fx:id="loadButton" text="Charger" styleClass="action-button" />
-                <Button fx:id="saveButton" text="Sauvegarder" styleClass="primary-button" />
-                <Button fx:id="testButton" text="Tester" styleClass="secondary-button" />
+                <Button fx:id="returnButton" styleClass="icon-button, return-button">
+                    <tooltip>
+                        <Tooltip text="Retour au menu" />
+                    </tooltip>
+                    <graphic>
+                        <ImageView fitHeight="24" fitWidth="24" preserveRatio="true">
+                            <Image url="@../Images/icons/return.png" />
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="newButton" styleClass="icon-button, new-button">
+                    <tooltip>
+                        <Tooltip text="Nouveau niveau" />
+                    </tooltip>
+                    <graphic>
+                        <ImageView fitHeight="24" fitWidth="24" preserveRatio="true">
+                            <Image url="@../Images/icons/add.png" />
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="loadButton" styleClass="icon-button, load-button">
+                    <tooltip>
+                        <Tooltip text="Charger un niveau" />
+                    </tooltip>
+                    <graphic>
+                        <ImageView fitHeight="24" fitWidth="24" preserveRatio="true">
+                            <Image url="@../Images/icons/folder.png" />
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="saveButton" styleClass="icon-button, save-button">
+                    <tooltip>
+                        <Tooltip text="Sauvegarder le niveau" />
+                    </tooltip>
+                    <graphic>
+                        <ImageView fitHeight="24" fitWidth="24" preserveRatio="true">
+                            <Image url="@../Images/icons/save.png" />
+                        </ImageView>
+                    </graphic>
+                </Button>
+                <Button fx:id="testButton" prefHeight="0.0" prefWidth="48.0" styleClass="icon-button, test-button">
+                    <tooltip>
+                        <Tooltip text="Tester le niveau" />
+                    </tooltip>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/icons/test.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+                </Button>
             </HBox>
 
             <!-- Barre d'outils -->
@@ -42,87 +85,124 @@
                     <Insets top="10" />
                 </padding>
 
-                <Label text="Outils:" styleClass="toolbar-label">
+                <Label styleClass="toolbar-label" text="Outils:">
                     <font>
                         <Font name="System Bold" size="14.0" />
                     </font>
                 </Label>
 
-                <!-- Déclaration du ToggleGroup en dehors des nœuds visuels -->
-                <fx:define>
-                    <ToggleGroup fx:id="toolGroup" />
-                </fx:define>
-
-                <ToggleButton fx:id="emptyTool" toggleGroup="$toolGroup"
-                             styleClass="tool-button, empty-tool">
+                <ToggleButton fx:id="emptyTool" styleClass="tool-button, empty-tool">
                     <tooltip>
                         <Tooltip text="Vide" />
                     </tooltip>
+               <toggleGroup>
+                  <ToggleGroup fx:id="toolGroup" />
+               </toggleGroup>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/default/tile.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
                 </ToggleButton>
-                <ToggleButton fx:id="wallTool" toggleGroup="$toolGroup"
-                             styleClass="tool-button, wall-tool">
+                <ToggleButton fx:id="wallTool" styleClass="tool-button, wall-tool" toggleGroup="$toolGroup">
                     <tooltip>
                         <Tooltip text="Mur indestructible" />
                     </tooltip>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/default/unbreakable_wall.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
                 </ToggleButton>
-                <ToggleButton fx:id="destructibleWallTool" toggleGroup="$toolGroup"
-                             styleClass="tool-button, destructible-wall-tool">
+                <ToggleButton fx:id="destructibleWallTool" styleClass="tool-button, destructible-wall-tool" toggleGroup="$toolGroup">
                     <tooltip>
                         <Tooltip text="Mur destructible" />
                     </tooltip>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/default/breakable_wall.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
                 </ToggleButton>
-                <ToggleButton fx:id="player1SpawnTool" toggleGroup="$toolGroup"
-                             styleClass="tool-button, player1-tool">
+                <ToggleButton fx:id="player1SpawnTool" styleClass="tool-button, player1-tool" toggleGroup="$toolGroup">
                     <tooltip>
                         <Tooltip text="Spawn Joueur 1" />
                     </tooltip>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/icons/P1.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
                 </ToggleButton>
-                <ToggleButton fx:id="player2SpawnTool" toggleGroup="$toolGroup"
-                             styleClass="tool-button, player2-tool">
+                <ToggleButton fx:id="player2SpawnTool" styleClass="tool-button, player2-tool" toggleGroup="$toolGroup">
                     <tooltip>
                         <Tooltip text="Spawn Joueur 2" />
                     </tooltip>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/icons/P2.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
                 </ToggleButton>
 
                 <Separator orientation="VERTICAL" />
-                
+
                 <!-- Bouton pour placer des murs aléatoirement -->
-                <Button fx:id="randomWallsButton" text="Murs Aléatoires" styleClass="action-button" />
-                
+                <Button fx:id="randomWallsButton" styleClass="action-button">
+                    <tooltip>
+                        <Tooltip text="Placer des murs aléatoires" />
+                    </tooltip>
+               <graphic>
+                  <ImageView pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../Images/icons/dice.png" />
+                     </image>
+                  </ImageView>
+               </graphic></Button>
+
                 <Separator orientation="VERTICAL" />
 
-                <Label text="Dimensions:" styleClass="toolbar-label" />
-                <Label text="Largeur:" />
-                <Spinner fx:id="widthSpinner" prefWidth="80" styleClass="dimension-spinner" />
-                <Label text="Hauteur:" />
-                <Spinner fx:id="heightSpinner" prefWidth="80" styleClass="dimension-spinner" />
-                <Label fx:id="dimensionsLabel" text="Dimensions: 15 x 13" styleClass="info-label" />
+                <Label styleClass="toolbar-label" text="Dimensions:" />
+                <Label styleClass="dimension-label" text="Largeur :" />
+                <Spinner fx:id="widthSpinner" styleClass="dimension-spinner" />
+                <Label styleClass="dimension-label" text="Hauteur :" />
+                <Spinner fx:id="heightSpinner" styleClass="dimension-spinner" />
+                <Label fx:id="dimensionsLabel" styleClass="info-label" text="Dimensions: 15 x 13" />
             </HBox>
         </VBox>
     </top>
 
     <!-- Centre avec le canvas d'édition -->
     <center>
-        <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="editor-scroll">
+        <ScrollPane fitToHeight="true" fitToWidth="true" styleClass="editor-scroll">
             <VBox alignment="CENTER" styleClass="canvas-container">
                 <padding>
-                    <Insets top="20" bottom="20" left="20" right="20" />
+                    <Insets bottom="20" left="20" right="20" top="20" />
                 </padding>
 
-                <Canvas fx:id="editorCanvas" width="450" height="390"
-                        styleClass="editor-canvas" />
+                <Canvas fx:id="editorCanvas" height="390" styleClass="editor-canvas" width="450" />
             </VBox>
         </ScrollPane>
     </center>
 
     <!-- Panneau latéral avec aide et légende -->
     <right>
-        <VBox spacing="15" prefWidth="250" styleClass="help-panel">
+        <VBox prefHeight="967.0" prefWidth="378.0" spacing="15" styleClass="help-panel">
             <padding>
-                <Insets top="20" bottom="20" left="15" right="15" />
+                <Insets bottom="20" left="15" right="15" top="20" />
             </padding>
 
-            <Label text="Aide" styleClass="panel-title">
+            <Label styleClass="panel-title" text="Aide">
                 <font>
                     <Font name="System Bold" size="16.0" />
                 </font>
@@ -132,59 +212,73 @@
 
             <!-- Instructions -->
             <VBox spacing="10" styleClass="instructions">
-                <Label text="Instructions:" styleClass="section-subtitle">
+                <Label styleClass="section-subtitle" text="Instructions:">
                     <font>
                         <Font name="System Bold" size="12.0" />
                     </font>
                 </Label>
 
-                <Label text="• Sélectionnez un outil dans la barre d'outils"
-                       styleClass="instruction-text" wrapText="true" />
-                <Label text="• Cliquez sur le canvas pour placer/modifier"
-                       styleClass="instruction-text" wrapText="true" />
-                <Label text="• Maintenez et glissez pour peindre"
-                       styleClass="instruction-text" wrapText="true" />
-                <Label text="• Clic droit pour ouvrir le menu de sélection d'outil"
-                       styleClass="instruction-text" wrapText="true" />
-                <Label text="• 'Murs Aléatoires' place des murs destructibles aléatoirement"
-                       styleClass="instruction-text" wrapText="true" />
-                <Label text="• Les bordures et murs fixes ne peuvent pas être modifiés"
-                       styleClass="instruction-text" wrapText="true" />
+                <Label styleClass="instruction-text" text="• Sélectionnez un outil dans la barre d'outils" wrapText="true" />
+                <Label styleClass="instruction-text" text="• Cliquez sur le canvas pour placer/modifier" wrapText="true" />
+                <Label styleClass="instruction-text" text="• Maintenez et glissez pour peindre" wrapText="true" />
+                <Label styleClass="instruction-text" text="• Clic droit pour ouvrir le menu de sélection d'outil" wrapText="true" />
+                <Label styleClass="instruction-text" text="• 'Murs Aléatoires' place des murs destructibles aléatoirement" wrapText="true" />
+                <Label styleClass="instruction-text" text="• Les bordures et murs fixes ne peuvent pas être modifiés" wrapText="true" />
             </VBox>
 
             <Separator />
 
             <!-- Légende -->
             <VBox spacing="10" styleClass="legend">
-                <Label text="Légende:" styleClass="section-subtitle">
+                <Label styleClass="section-subtitle" text="Légende:">
                     <font>
                         <Font name="System Bold" size="12.0" />
                     </font>
                 </Label>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="🟩" styleClass="legend-icon" />
-                    <Label text="Case vide" styleClass="legend-text" />
+                <HBox alignment="CENTER_LEFT" spacing="10">
+               <ImageView pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../Images/default/tile.png" />
+                  </image>
+               </ImageView>
+                    <Label styleClass="legend-text" text="Case vide" />
                 </HBox>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="⬛" styleClass="legend-icon" />
-                    <Label text="Mur indestructible" styleClass="legend-text" />
+                <HBox alignment="CENTER_LEFT" spacing="10">
+               <ImageView pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../Images/default/unbreakable_wall.png" />
+                  </image>
+               </ImageView>
+                    <Label styleClass="legend-text" text="Mur indestructible" />
                 </HBox>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="🟫" styleClass="legend-icon" />
-                    <Label text="Mur destructible" styleClass="legend-text" />
+                <HBox alignment="CENTER_LEFT" spacing="10">
+               <ImageView pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../Images/default/breakable_wall.png" />
+                  </image>
+               </ImageView>
+                    <Label styleClass="legend-text" text="Mur destructible" />
                 </HBox>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="🔵" styleClass="legend-icon" />
-                    <Label text="Spawn Joueur 1" styleClass="legend-text" />
+                <HBox alignment="CENTER_LEFT" spacing="10">
+               <ImageView pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../Images/icons/P1.png" />
+                  </image>
+               </ImageView>
+                    <Label styleClass="legend-text" text="Spawn Joueur 1" />
                 </HBox>
 
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="🔴" styleClass="legend-icon" />
-                    <Label text="Spawn Joueur 2" styleClass="legend-text" />
+                <HBox alignment="CENTER_LEFT" spacing="10">
+               <ImageView pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../Images/icons/P2.png" />
+                  </image>
+               </ImageView>
+                    <Label styleClass="legend-text" text="Spawn Joueur 2" />
                 </HBox>
             </VBox>
 
@@ -192,20 +286,16 @@
 
             <!-- Conseils -->
             <VBox spacing="10" styleClass="tips">
-                <Label text="Conseils:" styleClass="section-subtitle">
+                <Label styleClass="section-subtitle" text="Conseils:">
                     <font>
                         <Font name="System Bold" size="12.0" />
                     </font>
                 </Label>
 
-                <Label text="• Gardez des chemins ouverts entre les zones"
-                       styleClass="tip-text" wrapText="true" />
-                <Label text="• Placez des murs destructibles pour créer des power-ups"
-                       styleClass="tip-text" wrapText="true" />
-                <Label text="• Évitez les zones trop ouvertes ou fermées"
-                       styleClass="tip-text" wrapText="true" />
-                <Label text="• Testez votre niveau avant de le sauvegarder"
-                       styleClass="tip-text" wrapText="true" />
+                <Label styleClass="tip-text" text="• Gardez des chemins ouverts entre les zones" wrapText="true" />
+                <Label styleClass="tip-text" text="• Placez des murs destructibles pour créer des power-ups" wrapText="true" />
+                <Label styleClass="tip-text" text="• Évitez les zones trop ouvertes ou fermées" wrapText="true" />
+                <Label styleClass="tip-text" text="• Testez votre niveau avant de le sauvegarder" wrapText="true" />
             </VBox>
 
             <Region VBox.vgrow="ALWAYS" />

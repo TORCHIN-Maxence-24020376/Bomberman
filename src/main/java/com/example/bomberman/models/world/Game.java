@@ -2,7 +2,6 @@ package com.example.bomberman.models.world;
 
 import com.example.bomberman.models.entities.Bomb;
 import com.example.bomberman.models.entities.Player;
-import com.example.bomberman.models.entities.PlayerProfile;
 import com.example.bomberman.models.entities.PowerUp;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
@@ -35,6 +34,23 @@ public class Game {
     // Pour gérer les touches pressées simultanément
     private Set<KeyCode> pressedKeys;
 
+    // Contrôles fixes pour les joueurs
+    // Joueur 1: ZQSD + A (bombe) + E (capacité spéciale)
+    private static final KeyCode P1_UP = KeyCode.Z;
+    private static final KeyCode P1_DOWN = KeyCode.S;
+    private static final KeyCode P1_LEFT = KeyCode.Q;
+    private static final KeyCode P1_RIGHT = KeyCode.D;
+    private static final KeyCode P1_BOMB = KeyCode.A;
+    private static final KeyCode P1_SPECIAL = KeyCode.E;
+    
+    // Joueur 2: Flèches + Espace (bombe) + Ctrl droit (capacité spéciale)
+    private static final KeyCode P2_UP = KeyCode.UP;
+    private static final KeyCode P2_DOWN = KeyCode.DOWN;
+    private static final KeyCode P2_LEFT = KeyCode.LEFT;
+    private static final KeyCode P2_RIGHT = KeyCode.RIGHT;
+    private static final KeyCode P2_BOMB = KeyCode.SPACE;
+    private static final KeyCode P2_SPECIAL = KeyCode.CONTROL;
+
     public Game() {
         pressedKeys = new HashSet<>();
         initializeGame();
@@ -52,27 +68,15 @@ public class Game {
         wallsDestroyed = 0;
     }
 
-    /**
-     * Définit les profils des joueurs
-     */
-    public void setPlayerProfiles(PlayerProfile profile1, PlayerProfile profile2) {
-        if (player1 != null) {
-            player1.setProfile(profile1);
-        }
-        if (player2 != null) {
-            player2.setProfile(profile2);
-        }
-    }
-
     public void handleKeyPressed(KeyCode key) {
         if (!gameRunning) return;
 
         pressedKeys.add(key);
 
-        // Gestion des bombes (action instantanée)
-        if (key == KeyCode.A) {
+        // Gestion des bombes avec contrôles fixes
+        if (key == P1_BOMB) {
             placeBomb(player1);
-        } else if (key == KeyCode.SPACE) {
+        } else if (key == P2_BOMB) {
             placeBomb(player2);
         }
     }
@@ -81,36 +85,40 @@ public class Game {
         pressedKeys.remove(key);
     }
 
-    // Nouvelle méthode pour traiter les mouvements en continu
+    // Méthode pour traiter les mouvements en continu avec contrôles fixes
     public void processMovement() {
         if (!gameRunning) return;
 
-        // Joueur 1 (ZQSD)
-        if (pressedKeys.contains(KeyCode.Z)) {
-            movePlayer(player1, 0, -1);
-        }
-        if (pressedKeys.contains(KeyCode.S)) {
-            movePlayer(player1, 0, 1);
-        }
-        if (pressedKeys.contains(KeyCode.Q)) {
-            movePlayer(player1, -1, 0);
-        }
-        if (pressedKeys.contains(KeyCode.D)) {
-            movePlayer(player1, 1, 0);
+        // Joueur 1 avec contrôles fixes
+        if (player1 != null && player1.isAlive()) {
+            if (pressedKeys.contains(P1_UP)) {
+                movePlayer(player1, 0, -1);
+            }
+            if (pressedKeys.contains(P1_DOWN)) {
+                movePlayer(player1, 0, 1);
+            }
+            if (pressedKeys.contains(P1_LEFT)) {
+                movePlayer(player1, -1, 0);
+            }
+            if (pressedKeys.contains(P1_RIGHT)) {
+                movePlayer(player1, 1, 0);
+            }
         }
 
-        // Joueur 2 (Flèches)
-        if (pressedKeys.contains(KeyCode.UP)) {
-            movePlayer(player2, 0, -1);
-        }
-        if (pressedKeys.contains(KeyCode.DOWN)) {
-            movePlayer(player2, 0, 1);
-        }
-        if (pressedKeys.contains(KeyCode.LEFT)) {
-            movePlayer(player2, -1, 0);
-        }
-        if (pressedKeys.contains(KeyCode.RIGHT)) {
-            movePlayer(player2, 1, 0);
+        // Joueur 2 avec contrôles fixes
+        if (player2 != null && player2.isAlive()) {
+            if (pressedKeys.contains(P2_UP)) {
+                movePlayer(player2, 0, -1);
+            }
+            if (pressedKeys.contains(P2_DOWN)) {
+                movePlayer(player2, 0, 1);
+            }
+            if (pressedKeys.contains(P2_LEFT)) {
+                movePlayer(player2, -1, 0);
+            }
+            if (pressedKeys.contains(P2_RIGHT)) {
+                movePlayer(player2, 1, 0);
+            }
         }
     }
 
