@@ -74,7 +74,7 @@ public class Main extends Application {
             primaryStage.show();
 
             // Démarrer la musique du menu après l'affichage de la fenêtre
-            Platform.runLater(() -> {
+               Platform.runLater(() -> {
                 try {
                     Thread.sleep(500); // Attendre 500ms pour que la fenêtre soit bien initialisée
                     soundManager.playBackgroundMusic("menu");
