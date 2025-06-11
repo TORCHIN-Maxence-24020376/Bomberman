@@ -64,14 +64,14 @@
 
     <!-- Boutons du menu -->
     <VBox alignment="CENTER" spacing="15">
-        <Button fx:id="playButton" text="JOUER 2 JOUEURS" prefWidth="250" prefHeight="40"
+        <Button fx:id="playButton" text="MODE 1 CONTRE 1" prefWidth="250" prefHeight="40"
                 styleClass="primary-button">
             <font>
                 <Font name="System Bold" size="16.0" />
             </font>
         </Button>
         
-        <Button fx:id="playBotButton" text="JOUER CONTRE LE BOT" prefWidth="250" prefHeight="40"
+        <Button fx:id="playBotButton" text="MODE 1 CONTRE IA" prefWidth="250" prefHeight="40"
                 styleClass="primary-button">
             <font>
                 <Font name="System Bold" size="16.0" />
