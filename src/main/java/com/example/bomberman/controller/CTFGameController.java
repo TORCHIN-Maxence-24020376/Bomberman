@@ -18,14 +18,27 @@ public class CTFGameController extends GameController {
     @FXML private Label ctfPlayer2ScoreLabel;
     
     /**
+     * Constructeur par défaut
+     */
+    public CTFGameController() {
+        super();
+        System.out.println("CTFGameController: Constructeur appelé");
+    }
+    
+    /**
      * Initialise une partie en mode Capture the Flag
      */
     @Override
     protected void initializeGame() {
         try {
+            System.out.println("CTFGameController: Début de l'initialisation");
+            
             // Créer une instance de CTFGame au lieu de Game
             ctfGame = new CTFGame();
+            System.out.println("CTFGameController: CTFGame créé");
+            
             setGame(ctfGame);
+            System.out.println("CTFGameController: Game défini");
             
             // Ne pas appeler super.initializeGame() car cela recréerait un jeu standard
             // Au lieu de cela, initialiser les variables comme dans la méthode parente
@@ -35,14 +48,22 @@ public class CTFGameController extends GameController {
             isPaused = false;
     
             updateUI();
+            System.out.println("CTFGameController: UI mise à jour");
     
             // Jouer la musique de jeu
-            soundManager.playBackgroundMusic("/sounds/game_music.mp3");
+            if (soundManager != null) {
+                soundManager.playBackgroundMusic("/sounds/game_music.mp3");
+                System.out.println("CTFGameController: Musique lancée");
+            } else {
+                System.out.println("CTFGameController: ERREUR - soundManager est null");
+            }
             
             // Afficher un message d'instructions pour le mode CTF
             showInstructions();
+            System.out.println("CTFGameController: Instructions affichées");
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("CTFGameController: ERREUR - " + e.getMessage());
             showAlert("Erreur", "Impossible de charger le mode Capture the Flag. " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
@@ -99,6 +120,14 @@ public class CTFGameController extends GameController {
             if (getGameStatusLabel() != null) {
                 String scoreText = "Score CTF: " + ctfGame.getBlueScore() + " - " + ctfGame.getRedScore();
                 getGameStatusLabel().setText(scoreText);
+            }
+            
+            if (ctfPlayer1ScoreLabel != null) {
+                ctfPlayer1ScoreLabel.setText("Score: " + ctfGame.getBlueScore());
+            }
+            
+            if (ctfPlayer2ScoreLabel != null) {
+                ctfPlayer2ScoreLabel.setText("Score: " + ctfGame.getRedScore());
             }
         });
     }

@@ -334,14 +334,20 @@ public class MainMenuController implements Initializable {
     @FXML
     private void startCTFGame() {
         try {
+            System.out.println("MainMenuController: Lancement du mode Capture the Flag");
             soundManager.stopBackgroundMusic();
             
             // Charger la scène de jeu CTF
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/ctf-game-view.fxml"));
-            Parent gameRoot = loader.load();
+            System.out.println("MainMenuController: FXMLLoader créé");
             
-            // Récupérer le contrôleur de jeu
-            CTFGameController ctfController = loader.getController();
+            // S'assurer que le contrôleur est correctement initialisé
+            CTFGameController ctfController = new CTFGameController();
+            loader.setController(ctfController);
+            System.out.println("MainMenuController: Contrôleur CTF défini manuellement");
+            
+            Parent gameRoot = loader.load();
+            System.out.println("MainMenuController: FXML chargé avec succès");
             
             // Définir les profils des joueurs
             String selectedProfile1 = player1Combo.getValue();
@@ -352,6 +358,7 @@ public class MainMenuController implements Initializable {
                 PlayerProfile profile2 = profileManager.findProfile(selectedProfile2);
                 
                 if (profile1 != null && profile2 != null) {
+                    System.out.println("MainMenuController: Profils des joueurs trouvés");
                     ctfController.setPlayerProfiles(profile1, profile2);
                 }
             }
@@ -365,19 +372,27 @@ public class MainMenuController implements Initializable {
                 URL cssResource = getClass().getResource("/com/example/bomberman/styles.css");
                 if (cssResource != null) {
                     gameScene.getStylesheets().add(cssResource.toExternalForm());
+                    System.out.println("MainMenuController: CSS chargé");
+                } else {
+                    System.out.println("MainMenuController: CSS non trouvé");
                 }
             } catch (Exception cssError) {
-                System.out.println("CSS non trouvé, continuation sans styles");
+                System.out.println("MainMenuController: Erreur lors du chargement du CSS - " + cssError.getMessage());
             }
             
             stage.setScene(gameScene);
             stage.setTitle("Super Bomberman - Mode Capture the Flag");
             
-            System.out.println("Jeu Capture the Flag lancé avec succès !");
+            System.out.println("MainMenuController: Jeu Capture the Flag lancé avec succès !");
             
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger le mode Capture the Flag.", Alert.AlertType.ERROR);
+            System.err.println("MainMenuController: ERREUR - " + e.getMessage());
+            showAlert("Erreur", "Impossible de charger le mode Capture the Flag: " + e.getMessage(), Alert.AlertType.ERROR);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("MainMenuController: ERREUR INATTENDUE - " + e.getMessage());
+            showAlert("Erreur critique", "Erreur inattendue lors du chargement du mode Capture the Flag: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
