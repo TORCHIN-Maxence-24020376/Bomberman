@@ -54,7 +54,7 @@ public class Main extends Application {
             }
 
             // Configuration de la fenêtre principale
-            primaryStage.setTitle("Super Bomberman - Version Améliorée");
+            primaryStage.setTitle("Super Bomberman");
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
             primaryStage.setMinWidth(1000);

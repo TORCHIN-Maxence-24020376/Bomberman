@@ -286,13 +286,13 @@ public class Player extends MovableEntity {
      * Applique un power-up au joueur
      */
     public void applyPowerUp(PowerUp.Type powerUpType) {
-        SoundManager.getInstance().playSound("powerup_collect");
-        
         switch (powerUpType) {
             case BOMB_UP:
+                SoundManager.getInstance().playSound("powerup_collect");
                 maxBombs++;
                 break;
             case FIRE_UP:
+                SoundManager.getInstance().playSound("powerup_collect");
                 bombRange++;
                 break;
             case SKULL:
