@@ -9,7 +9,6 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.bomberman.controller.CTFGameController"
             styleClass="game-container">
 
     <top>
