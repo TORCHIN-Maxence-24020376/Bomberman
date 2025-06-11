@@ -184,8 +184,8 @@ public class BotPlayer extends Player {
         for (int i = 0; i < 4; i++) {
             int newX = getX() + DX[i];
             int newY = getY() + DY[i];
-            
-            if (board.isWall(newX, newY) || board.isSolidWall(newX, newY)) {
+
+            if (board.isWall(newX, newY)) {
                 wallCount++;
             }
         }
