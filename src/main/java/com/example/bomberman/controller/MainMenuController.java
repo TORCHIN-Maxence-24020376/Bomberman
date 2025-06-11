@@ -31,6 +31,7 @@ public class MainMenuController implements Initializable {
     @FXML private BorderPane mainContainer;
     @FXML private VBox menuOptions;
     @FXML private Button playButton;
+    @FXML private Button botGameButton;
     @FXML private Button levelEditorButton;
     @FXML private Button settingsButton;
     @FXML private Button quitButton;
@@ -108,6 +109,129 @@ public class MainMenuController implements Initializable {
             e.printStackTrace();
             showErrorAlert("Erreur au chargement du jeu", e.getMessage());
         }
+    }
+    
+    /**
+     * Démarre une partie contre l'IA
+     */
+    @FXML
+    private void startBotGame() {
+        try {
+            // Afficher une boîte de dialogue pour choisir la difficulté
+            int difficultyLevel = showDifficultyDialog();
+            if (difficultyLevel == 0) {
+                // L'utilisateur a annulé, ne rien faire
+                return;
+            }
+            
+            // Arrêter la musique du menu et jouer celle du jeu si la musique est activée
+            if (userPreferences.isMusicEnabled()) {
+                soundManager.stopBackgroundMusic();
+                soundManager.playBackgroundMusic("game_music");
+            }
+
+            // Charger la vue du jeu standard (nous modifierons le contrôleur)
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+            Parent gameRoot = loader.load();
+            
+            // Récupérer le contrôleur de jeu
+            GameController gameController = loader.getController();
+            
+            // Créer une instance de BotGame
+            com.example.bomberman.models.world.BotGame botGame = 
+                new com.example.bomberman.models.world.BotGame(difficultyLevel);
+            
+            // Définir le jeu du contrôleur
+            gameController.loadCustomGame(botGame);
+
+            // Créer une nouvelle scène pour le jeu
+            Scene gameScene = new Scene(gameRoot, 1000, 900);
+            
+            // Ajouter le CSS pour le jeu
+            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            if (cssResource != null) {
+                gameScene.getStylesheets().add(cssResource.toExternalForm());
+            }
+
+            // Obtenir le stage actuel
+            Stage stage = (Stage) botGameButton.getScene().getWindow();
+            
+            // Changer la scène
+            stage.setScene(gameScene);
+            stage.setTitle("Super Bomberman - Mode VS IA (Niveau " + difficultyLevel + ")");
+            
+            // Afficher les instructions du mode IA
+            showBotInstructions(difficultyLevel);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showErrorAlert("Erreur au chargement du mode IA", e.getMessage());
+        }
+    }
+    
+    /**
+     * Affiche une boîte de dialogue pour choisir la difficulté du bot
+     * @return Le niveau de difficulté (1-3) ou 0 si annulé
+     */
+    private int showDifficultyDialog() {
+        Dialog<Integer> dialog = new Dialog<>();
+        dialog.setTitle("Difficulté du Bot");
+        dialog.setHeaderText("Choisissez le niveau de difficulté");
+        
+        // Ajouter des boutons pour chaque niveau de difficulté
+        ButtonType easyButton = new ButtonType("Facile", ButtonBar.ButtonData.OK_DONE);
+        ButtonType mediumButton = new ButtonType("Moyen", ButtonBar.ButtonData.OK_DONE);
+        ButtonType hardButton = new ButtonType("Difficile", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        
+        dialog.getDialogPane().getButtonTypes().addAll(easyButton, mediumButton, hardButton, cancelButton);
+        
+        // Convertir le résultat en entier
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == easyButton) {
+                return 1;
+            } else if (dialogButton == mediumButton) {
+                return 2;
+            } else if (dialogButton == hardButton) {
+                return 3;
+            }
+            return 0; // Annulé
+        });
+        
+        Optional<Integer> result = dialog.showAndWait();
+        return result.orElse(0);
+    }
+    
+    /**
+     * Affiche les instructions du mode Bot
+     */
+    private void showBotInstructions(int difficultyLevel) {
+        String difficultyText;
+        switch (difficultyLevel) {
+            case 1: difficultyText = "Facile"; break;
+            case 2: difficultyText = "Moyen"; break;
+            case 3: difficultyText = "Difficile"; break;
+            default: difficultyText = "Inconnu";
+        }
+        
+        String instructions = 
+            "Mode VS IA - Niveau : " + difficultyText + "\n\n" +
+            "Bienvenue dans le mode VS IA !\n\n" +
+            "Vous affrontez un bot avec intelligence artificielle.\n" +
+            "Collectez des power-ups et utilisez des stratégies pour vaincre votre adversaire robot.\n\n" +
+            "Contrôles:\n" +
+            "• ZQSD: Déplacer le joueur\n" +
+            "• A: Placer une bombe\n" +
+            "• Échap: Pause/Menu\n\n" +
+            "Bonne chance !";
+        
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Mode VS IA");
+            alert.setHeaderText(null);
+            alert.setContentText(instructions);
+            alert.showAndWait();
+        });
     }
 
     /**
@@ -333,11 +457,16 @@ public class MainMenuController implements Initializable {
      */
     @FXML
     private void quitGame() {
-        // Arrêter la musique
-        soundManager.stopBackgroundMusic();
-        
-        // Fermer l'application
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Quitter");
+        confirmAlert.setHeaderText("Voulez-vous vraiment quitter le jeu ?");
+        confirmAlert.setContentText("Toute progression non sauvegardée sera perdue.");
+
+        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            // Sauvegarder les préférences utilisateur avant de quitter
+            userPreferences.savePreferences();
             Platform.exit();
+        }
     }
 
     /**

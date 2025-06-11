@@ -51,7 +51,7 @@ public class GameController implements Initializable {
     @FXML private Label player2SpeedLabel;
 
     // Modèle du jeu
-    private Game game;
+    protected Game game;
     private GraphicsContext gc;
     private AnimationTimer gameLoop;
 
@@ -100,7 +100,7 @@ public class GameController implements Initializable {
     /**
      * Initialise une nouvelle partie
      */
-    private void initializeGame() {
+    protected void initializeGame() {
         game = new Game();
         gameRunning = true;
         gameStartTime = System.currentTimeMillis();
@@ -723,5 +723,45 @@ public class GameController implements Initializable {
                 togglePause();
             }
         });
+    }
+
+    /**
+     * Définit le jeu à utiliser (pour les sous-classes)
+     * @param game Le jeu à utiliser
+     */
+    protected void setGame(Game game) {
+        this.game = game;
+    }
+
+    /**
+     * Charge un jeu personnalisé
+     * @param game Instance de jeu à utiliser
+     */
+    public void loadCustomGame(Game game) {
+        if (game != null) {
+            this.game = game;
+            gameRunning = true;
+            gameStartTime = System.currentTimeMillis();
+            totalPauseTime = 0;
+            isPaused = false;
+            
+            updateUI();
+            
+            // Jouer la musique du jeu
+            if (game instanceof com.example.bomberman.models.world.BotGame) {
+                // Musique spécifique pour le mode IA
+                soundManager.playBackgroundMusic("game_music_B");
+                
+                // Mettre à jour l'interface avec l'information du bot
+                if (player2InfoLabel != null) {
+                    player2InfoLabel.setText("BOT - Score: 0");
+                }
+            } else {
+                // Musique standard
+                soundManager.playBackgroundMusic("game_music");
+            }
+            
+            System.out.println("Jeu personnalisé chargé");
+        }
     }
 }

@@ -42,6 +42,13 @@
                     <Font name="System Bold" size="16.0" />
                 </font>
             </Button>
+            
+            <Button fx:id="botGameButton" text="VS IA" prefWidth="200" prefHeight="40"
+                    styleClass="primary-button" onAction="#startBotGame">
+                <font>
+                    <Font name="System Bold" size="16.0" />
+                </font>
+            </Button>
 
             <Button fx:id="levelEditorButton" text="Éditeur de Niveaux" prefWidth="200" prefHeight="35"
                     styleClass="secondary-button" onAction="#openLevelEditor" />
