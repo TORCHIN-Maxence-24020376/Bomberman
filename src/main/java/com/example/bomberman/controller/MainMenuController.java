@@ -341,13 +341,15 @@ public class MainMenuController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/ctf-game-view.fxml"));
             System.out.println("MainMenuController: FXMLLoader créé");
             
-            // S'assurer que le contrôleur est correctement initialisé
-            CTFGameController ctfController = new CTFGameController();
-            loader.setController(ctfController);
-            System.out.println("MainMenuController: Contrôleur CTF défini manuellement");
+            // Ne pas définir explicitement le contrôleur, il est déjà défini dans le FXML
+            // Le contrôleur sera créé automatiquement lors du chargement du FXML
             
             Parent gameRoot = loader.load();
             System.out.println("MainMenuController: FXML chargé avec succès");
+            
+            // Récupérer le contrôleur
+            CTFGameController ctfController = loader.getController();
+            System.out.println("MainMenuController: Contrôleur CTF récupéré");
             
             // Définir les profils des joueurs
             String selectedProfile1 = player1Combo.getValue();
