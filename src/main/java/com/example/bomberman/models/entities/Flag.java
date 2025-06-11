@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 
 /**
  * Classe représentant un drapeau pour le mode Capture the Flag
+ * Basé sur les règles de Super Bomberman 4
  */
 public class Flag extends PowerUp {
     
@@ -14,6 +15,8 @@ public class Flag extends PowerUp {
     private Player carrier;
     private int originalX;
     private int originalY;
+    private Player owner; // Propriétaire du drapeau (si détruit, le propriétaire est éliminé)
+    private boolean isDestroyed; // Indique si le drapeau a été détruit
     
     /**
      * Constructeur
@@ -29,6 +32,15 @@ public class Flag extends PowerUp {
         this.color = (teamId == 1) ? Color.BLUE : Color.RED;
         this.isPickedUp = false;
         this.carrier = null;
+        this.isDestroyed = false;
+    }
+    
+    /**
+     * Définit le propriétaire du drapeau
+     * @param player Le joueur propriétaire du drapeau
+     */
+    public void setOwner(Player player) {
+        this.owner = player;
     }
     
     /**
@@ -36,9 +48,8 @@ public class Flag extends PowerUp {
      */
     @Override
     public void render(GraphicsContext gc, int tileSize) {
-        if (isPickedUp) {
-            // Si le drapeau est porté, il n'est pas affiché séparément
-            // (il sera affiché avec le joueur qui le porte)
+        if (isPickedUp || isDestroyed) {
+            // Si le drapeau est porté ou détruit, il n'est pas affiché séparément
             return;
         }
         
@@ -68,7 +79,7 @@ public class Flag extends PowerUp {
      * Dessine le drapeau porté par un joueur
      */
     public void renderCarried(GraphicsContext gc, int tileSize, int playerX, int playerY) {
-        if (!isPickedUp) return;
+        if (!isPickedUp || isDestroyed) return;
         
         // Dessiner un petit drapeau au-dessus du joueur
         gc.setFill(color);
@@ -88,11 +99,7 @@ public class Flag extends PowerUp {
      * Le drapeau est ramassé par un joueur
      */
     public void pickUp(Player player) {
-        if (player.getPlayerId() == teamId) {
-            // Un joueur ne peut pas prendre son propre drapeau
-            return;
-        }
-        
+        // Dans Super Bomberman 4, n'importe quel joueur peut ramasser n'importe quel drapeau
         this.isPickedUp = true;
         this.carrier = player;
         
@@ -101,7 +108,7 @@ public class Flag extends PowerUp {
     }
     
     /**
-     * Le drapeau est lâché (quand le porteur meurt)
+     * Le drapeau est lâché (quand le porteur meurt ou appuie sur Y)
      */
     public void drop() {
         if (carrier != null) {
@@ -122,6 +129,21 @@ public class Flag extends PowerUp {
         this.y = originalY;
         this.isPickedUp = false;
         this.carrier = null;
+        this.isDestroyed = false;
+    }
+    
+    /**
+     * Le drapeau est détruit par une explosion
+     * Dans Super Bomberman 4, si un drapeau est détruit, son propriétaire est éliminé
+     * @return true si le propriétaire doit être éliminé
+     */
+    public boolean destroy() {
+        this.isDestroyed = true;
+        this.isPickedUp = false;
+        this.carrier = null;
+        
+        // Si le drapeau a un propriétaire, il doit être éliminé
+        return owner != null;
     }
     
     /**
@@ -174,6 +196,14 @@ public class Flag extends PowerUp {
     
     public Color getColor() {
         return color;
+    }
+    
+    public Player getOwner() {
+        return owner;
+    }
+    
+    public boolean isDestroyed() {
+        return isDestroyed;
     }
     
     @Override

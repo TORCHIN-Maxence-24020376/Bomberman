@@ -336,12 +336,8 @@ public class MainMenuController implements Initializable {
         try {
             soundManager.stopBackgroundMusic();
             
-            // Charger la scène de jeu
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
-            
-            // Remplacer le contrôleur par défaut par notre contrôleur CTF
-            loader.setController(new CTFGameController());
-            
+            // Charger la scène de jeu CTF
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/ctf-game-view.fxml"));
             Parent gameRoot = loader.load();
             
             // Récupérer le contrôleur de jeu
