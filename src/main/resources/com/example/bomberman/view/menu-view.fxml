@@ -77,6 +77,13 @@
                 <Font name="System Bold" size="16.0" />
             </font>
         </Button>
+        
+        <Button fx:id="playCTFButton" text="MODE CAPTURE THE FLAG" prefWidth="250" prefHeight="40"
+                styleClass="primary-button">
+            <font>
+                <Font name="System Bold" size="16.0" />
+            </font>
+        </Button>
 
         <Button fx:id="profilesButton" text="Gestion des Profils" prefWidth="200" prefHeight="35"
                 styleClass="secondary-button" />

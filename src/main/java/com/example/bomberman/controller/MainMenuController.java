@@ -26,6 +26,7 @@ public class MainMenuController implements Initializable {
 
     @FXML private Button playButton;
     @FXML private Button playBotButton;
+    @FXML private Button playCTFButton;
     @FXML private Button profilesButton;
     @FXML private Button settingsButton;
     @FXML private Button levelEditorButton;
@@ -55,6 +56,9 @@ public class MainMenuController implements Initializable {
         // Configuration des boutons
         playButton.setOnAction(e -> startGame());
         playBotButton.setOnAction(e -> startBotGame());
+        if (playCTFButton != null) {
+            playCTFButton.setOnAction(e -> startCTFGame());
+        }
         profilesButton.setOnAction(e -> openProfilesManagement());
         settingsButton.setOnAction(e -> openSettings());
         levelEditorButton.setOnAction(e -> openLevelEditor());
@@ -321,6 +325,63 @@ public class MainMenuController implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
             showAlert("Erreur", "Impossible de charger l'éditeur de niveaux.", Alert.AlertType.ERROR);
+        }
+    }
+
+    /**
+     * Démarre une partie en mode Capture the Flag
+     */
+    @FXML
+    private void startCTFGame() {
+        try {
+            soundManager.stopBackgroundMusic();
+            
+            // Charger la scène de jeu
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+            
+            // Remplacer le contrôleur par défaut par notre contrôleur CTF
+            loader.setController(new CTFGameController());
+            
+            Parent gameRoot = loader.load();
+            
+            // Récupérer le contrôleur de jeu
+            CTFGameController ctfController = loader.getController();
+            
+            // Définir les profils des joueurs
+            String selectedProfile1 = player1Combo.getValue();
+            String selectedProfile2 = player2Combo.getValue();
+            
+            if (selectedProfile1 != null && selectedProfile2 != null) {
+                PlayerProfile profile1 = profileManager.findProfile(selectedProfile1);
+                PlayerProfile profile2 = profileManager.findProfile(selectedProfile2);
+                
+                if (profile1 != null && profile2 != null) {
+                    ctfController.setPlayerProfiles(profile1, profile2);
+                }
+            }
+            
+            // Changer de scène
+            Stage stage = (Stage) playCTFButton.getScene().getWindow();
+            Scene gameScene = new Scene(gameRoot, 800, 600);
+            
+            // Charger le CSS s'il existe
+            try {
+                URL cssResource = getClass().getResource("/com/example/bomberman/styles.css");
+                if (cssResource != null) {
+                    gameScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé, continuation sans styles");
+            }
+            
+            stage.setScene(gameScene);
+            stage.setTitle("Super Bomberman - Mode Capture the Flag");
+            
+            System.out.println("Jeu Capture the Flag lancé avec succès !");
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de charger le mode Capture the Flag.", Alert.AlertType.ERROR);
         }
     }
 

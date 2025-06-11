@@ -45,34 +45,34 @@ public class GameController implements Initializable {
     @FXML private HBox player2PowerUpsBox;
 
     // Modèle du jeu
-    private Game game;
-    private GraphicsContext gc;
-    private AnimationTimer gameLoop;
+    protected Game game;
+    protected GraphicsContext gc;
+    protected AnimationTimer gameLoop;
 
     // Gestion des entrées
-    private Set<KeyCode> pressedKeys;
+    protected Set<KeyCode> pressedKeys;
 
     // Utilitaires
-    private SoundManager soundManager;
-    private ProfileManager profileManager;
+    protected SoundManager soundManager;
+    protected ProfileManager profileManager;
 
     // Configuration
-    private static final int TILE_SIZE = 40;
+    protected static final int TILE_SIZE = 40;
 
     // État du jeu
-    private boolean gameRunning;
-    private long gameStartTime;
-    private long pauseStartTime;
-    private long totalPauseTime;
-    private boolean isPaused = false;
+    protected boolean gameRunning;
+    protected long gameStartTime;
+    protected long pauseStartTime;
+    protected long totalPauseTime;
+    protected boolean isPaused = false;
     
     // Mode test de l'éditeur
-    private boolean isTestMode = false;
-    private Stage levelEditorStage = null;
+    protected boolean isTestMode = false;
+    protected Stage levelEditorStage = null;
     
     // Attributs pour le mode bot
-    private boolean isBotMode = false;
-    private BotGame botGame = null;
+    protected boolean isBotMode = false;
+    protected BotGame botGame = null;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -96,7 +96,7 @@ public class GameController implements Initializable {
     /**
      * Initialise une nouvelle partie
      */
-    private void initializeGame() {
+    protected void initializeGame() {
         game = new Game();
         gameRunning = true;
         gameStartTime = System.currentTimeMillis();
@@ -501,7 +501,7 @@ public class GameController implements Initializable {
     /**
      * Met à jour l'interface utilisateur
      */
-    private void updateUI() {
+    protected void updateUI() {
         Platform.runLater(() -> {
             updatePlayerInfo();
             updateHealthBars();
@@ -710,5 +710,37 @@ public class GameController implements Initializable {
             
             gameStatusLabel.setText("Mode Bot - Difficulté: " + difficultyText);
         }
+    }
+
+    /**
+     * Définit le jeu à utiliser (pour les sous-classes)
+     * @param game Le jeu à utiliser
+     */
+    protected void setGame(Game game) {
+        this.game = game;
+    }
+    
+    /**
+     * Retourne le contexte graphique du canvas
+     * @return Le contexte graphique
+     */
+    protected GraphicsContext getGraphicsContext() {
+        return gc;
+    }
+    
+    /**
+     * Retourne le label de statut du jeu
+     * @return Le label de statut
+     */
+    protected Label getGameStatusLabel() {
+        return gameStatusLabel;
+    }
+    
+    /**
+     * Retourne le jeu actuel
+     * @return Le jeu
+     */
+    protected Game getGame() {
+        return game;
     }
 }
