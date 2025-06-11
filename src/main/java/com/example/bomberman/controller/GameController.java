@@ -36,10 +36,19 @@ public class GameController implements Initializable {
     @FXML private Label player1InfoLabel;
     @FXML private Label player2InfoLabel;
     @FXML private Label gameStatusLabel;
-    @FXML private ProgressBar player1HealthBar;
-    @FXML private ProgressBar player2HealthBar;
-    @FXML private HBox player1PowerUpsBox;
-    @FXML private HBox player2PowerUpsBox;
+    @FXML private Label timerLabel;
+    
+    // Nouveaux éléments d'interface
+    @FXML private Label player1BombsLabel;
+    @FXML private Label player2BombsLabel;
+    @FXML private Label player1LivesLabel;
+    @FXML private Label player2LivesLabel;
+    @FXML private Label player1BombsInfoLabel;
+    @FXML private Label player2BombsInfoLabel;
+    @FXML private Label player1RangeLabel;
+    @FXML private Label player2RangeLabel;
+    @FXML private Label player1SpeedLabel;
+    @FXML private Label player2SpeedLabel;
 
     // Modèle du jeu
     private Game game;
@@ -410,34 +419,32 @@ public class GameController implements Initializable {
      */
     private void updateUI() {
         updatePlayerInfo();
-        updateHealthBars();
+        updateGameStatus();
+        
+        // Mettre à jour le timer
+        long gameTime = getGameTime();
+        timerLabel.setText(formatTime(gameTime));
     }
 
     /**
      * Met à jour les informations des joueurs
      */
     private void updatePlayerInfo() {
-        if (player1InfoLabel != null && game.getPlayer1() != null) {
-            player1InfoLabel.setText("Joueur 1 (ZQSD + A + E) - Vies: " + game.getPlayer1().getLives() +
-                    " - Score: " + game.getPlayer1Score());
-        }
+        // Joueur 1
+        player1InfoLabel.setText("Joueur 1");
+        player1LivesLabel.setText(String.valueOf(game.getPlayer1().getLives()));
+        player1BombsLabel.setText(String.valueOf(game.getPlayer1().getMaxBombs()));
+        player1BombsInfoLabel.setText(String.valueOf(game.getPlayer1().getMaxBombs()));
+        player1RangeLabel.setText(String.valueOf(game.getPlayer1().getBombRange()));
+        player1SpeedLabel.setText(String.valueOf(game.getPlayer1().getSpeed()));
 
-        if (player2InfoLabel != null && game.getPlayer2() != null) {
-            player2InfoLabel.setText("Joueur 2 (Flèches + Espace + Ctrl) - Vies: " + game.getPlayer2().getLives() +
-                    " - Score: " + game.getPlayer2Score());
-        }
-    }
-
-    /**
-     * Met à jour les barres de vie
-     */
-    private void updateHealthBars() {
-        if (player1HealthBar != null && game.getPlayer1() != null) {
-            player1HealthBar.setProgress(game.getPlayer1().getLives() / 3.0);
-        }
-        if (player2HealthBar != null && game.getPlayer2() != null) {
-            player2HealthBar.setProgress(game.getPlayer2().getLives() / 3.0);
-        }
+        // Joueur 2
+        player2InfoLabel.setText("Joueur 2");
+        player2LivesLabel.setText(String.valueOf(game.getPlayer2().getLives()));
+        player2BombsLabel.setText(String.valueOf(game.getPlayer2().getMaxBombs()));
+        player2BombsInfoLabel.setText(String.valueOf(game.getPlayer2().getMaxBombs()));
+        player2RangeLabel.setText(String.valueOf(game.getPlayer2().getBombRange()));
+        player2SpeedLabel.setText(String.valueOf(game.getPlayer2().getSpeed()));
     }
 
     /**
