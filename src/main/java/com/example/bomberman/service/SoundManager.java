@@ -62,6 +62,8 @@ public class SoundManager {
             soundPaths.put("bomb_place", "/com/example/bomberman/sounds/bomb_place.mp3");
             soundPaths.put("bomb_explode", "/com/example/bomberman/sounds/bomb_explode.mp3");
             soundPaths.put("powerup_collect", "/com/example/bomberman/sounds/power_up_collect.mp3");
+            soundPaths.put("powerup_destroy", "/com/example/bomberman/sounds/powerup_destroy.mp3");
+            soundPaths.put("skull_effect", "/com/example/bomberman/sounds/skull_effect.mp3");
             
             // Essayer de charger avec ResourceManager
             String bombPlacePath = resourceManager.loadSound("bomb_place");
@@ -77,6 +79,16 @@ public class SoundManager {
             String powerupCollectPath = resourceManager.loadSound("power_up_collect");
             if (powerupCollectPath != null) {
                 soundPaths.put("powerup_collect", powerupCollectPath);
+            }
+            
+            String powerupDestroyPath = resourceManager.loadSound("powerup_destroy");
+            if (powerupDestroyPath != null) {
+                soundPaths.put("powerup_destroy", powerupDestroyPath);
+            }
+            
+            String skullEffectPath = resourceManager.loadSound("skull_effect");
+            if (skullEffectPath != null) {
+                soundPaths.put("skull_effect", skullEffectPath);
             }
 
             if (javafxMediaAvailable) {

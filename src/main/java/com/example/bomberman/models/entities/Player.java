@@ -17,35 +17,33 @@ public class Player extends MovableEntity {
     private int maxBombs;
     private int currentBombs;
     private int bombRange;
-
-    // Nouvelles propriétés pour les power-ups
-    private int speed; // Vitesse de déplacement (1-5)
-    private boolean canKickBombs;
+    
+    // Effets spéciaux
     private boolean hasSkull; // Effet négatif temporaire
     private long skullEndTime;
-
-    // Pour contrôler la vitesse de déplacement
+    
+    // Gestion du déplacement
     private long lastMoveTime;
     private long baseMoveDelay = 200; // Délai de base en millisecondes
     
-    // Invincibilité temporaire après dégât
+    // Invincibilité temporaire après avoir pris des dégâts
     private boolean isInvincible;
     private long invincibilityEndTime;
     private static final long INVINCIBILITY_DURATION = 2000; // 2 secondes
-
+    
     // Animation
     private double animationOffset;
     private long lastAnimationTime;
     
-    // Position de spawn initiale
+    // Position de spawn
     private int spawnX;
     private int spawnY;
     
-    // Direction du joueur (pour les sprites)
+    // Direction
     private enum Direction { UP, DOWN, LEFT, RIGHT }
     private Direction facing = Direction.DOWN;
     
-    // Sprites du joueur
+    // Sprites
     private Image frontSprite;
     private Image backSprite;
     private Image leftSprite;
@@ -54,15 +52,13 @@ public class Player extends MovableEntity {
      * Constructeur du joueur
      */
     public Player(int x, int y, Color color, int playerId) {
-        super(x, y, 1); // Vitesse initiale = 1
+        super(x, y);
         this.color = color;
         this.playerId = playerId;
         this.lives = 3;
         this.maxBombs = 1;
         this.currentBombs = 0;
         this.bombRange = 1; // Portée initiale = 1
-        this.speed = 1;
-        this.canKickBombs = false;
         this.hasSkull = false;
         this.skullEndTime = 0;
         this.lastMoveTime = 0;
@@ -231,24 +227,6 @@ public class Player extends MovableEntity {
 
         int indicatorIndex = 0;
 
-        // Indicateur de vitesse
-        if (speed > 1) {
-            gc.setFill(Color.CYAN);
-            gc.fillRect(startX + indicatorIndex * spacing, indicatorY, indicatorSize, indicatorSize);
-            gc.setFill(Color.BLACK);
-            gc.fillText("S", startX + indicatorIndex * spacing + 1, indicatorY + 7);
-            indicatorIndex++;
-        }
-
-        // Indicateur de kick
-        if (canKickBombs) {
-            gc.setFill(Color.GREEN);
-            gc.fillRect(startX + indicatorIndex * spacing, indicatorY, indicatorSize, indicatorSize);
-            gc.setFill(Color.WHITE);
-            gc.fillText("K", startX + indicatorIndex * spacing + 1, indicatorY + 7);
-            indicatorIndex++;
-        }
-
         // Indicateur de portée élevée
         if (bombRange > 1) {
             gc.setFill(Color.RED);
@@ -274,24 +252,19 @@ public class Player extends MovableEntity {
      * @param board Plateau de jeu pour vérifier les collisions
      */
     public boolean moveToPosition(int newX, int newY, GameBoard board) {
-        // Mettre à jour la direction du joueur
+        // Calculer le déplacement
         int dx = newX - x;
         int dy = newY - y;
-        updateFacingDirection(dx, dy);
         
-        // Vérifier s'il y a une bombe devant le joueur et tenter de la pousser
-        if (canKickBombs) {
-            int frontX = x + dx;
-            int frontY = y + dy;
-            if (board.isBomb(frontX, frontY)) {
-                tryPushBomb(dx, dy, board);
-            }
+        // Essayer de déplacer le joueur
+        boolean moved = move(dx, dy, board);
+        
+        // Mettre à jour la direction du joueur seulement si le déplacement a réussi
+        if (moved) {
+            updateFacingDirection(dx, dy);
         }
         
-        if (move(dx, dy, board)) {
-            return true;
-        }
-        return false;
+        return moved;
     }
     
     /**
@@ -308,69 +281,24 @@ public class Player extends MovableEntity {
             facing = Direction.DOWN;
         }
     }
-    
-    /**
-     * Essaie de pousser une bombe dans la direction du mouvement
-     */
-    private void tryPushBomb(int dx, int dy, GameBoard board) {
-        // Si le joueur n'a pas le power-up pour pousser les bombes, on ne fait rien
-        if (!canKickBombs) return;
-        
-        // Vérifier s'il y a une bombe devant le joueur
-        int frontBombX = x + dx;
-        int frontBombY = y + dy;
-        
-        if (board.isBomb(frontBombX, frontBombY)) {
-            // Calculer la nouvelle position de la bombe
-            int newBombX = frontBombX + dx;
-            int newBombY = frontBombY + dy;
-            
-            // Vérifier si la nouvelle position est valide
-            if (board.isValidMove(newBombX, newBombY)) {
-                // Déplacer la bombe
-                board.moveBomb(frontBombX, frontBombY, newBombX, newBombY);
-            }
-        }
-        
-        // Vérifier également s'il y a une bombe à la position actuelle
-        if (board.isBomb(x, y)) {
-            // Calculer la nouvelle position de la bombe
-            int newBombX = x + dx;
-            int newBombY = y + dy;
-            
-            // Vérifier si la nouvelle position est valide
-            if (board.isValidMove(newBombX, newBombY)) {
-                // Déplacer la bombe
-                board.moveBomb(x, y, newBombX, newBombY);
-            }
-        }
-    }
 
     /**
      * Applique un power-up au joueur
      */
     public void applyPowerUp(PowerUp.Type powerUpType) {
         SoundManager.getInstance().playSound("powerup_collect");
-
+        
         switch (powerUpType) {
             case BOMB_UP:
-                maxBombs = Math.min(maxBombs + 1, 8); // Maximum 8 bombes
+                maxBombs++;
                 break;
-
             case FIRE_UP:
-                bombRange = Math.min(bombRange + 1, 10); // Maximum 10 de portée
+                bombRange++;
                 break;
-
-            case SPEED_UP:
-                setSpeed(Math.min(speed + 1, 5)); // Maximum vitesse 5
-                break;
-
-            case KICK:
-                canKickBombs = true;
-                break;
-
             case SKULL:
                 applySkullEffect();
+                break;
+            default:
                 break;
         }
     }
@@ -381,23 +309,13 @@ public class Player extends MovableEntity {
     private void applySkullEffect() {
         hasSkull = true;
         skullEndTime = System.currentTimeMillis() + 10000; // 10 secondes
-
-        // Effets aléatoires négatifs
-        int randomEffect = (int)(Math.random() * 4);
-        switch (randomEffect) {
-            case 0: // Réduction de vitesse
-                setSpeed(Math.max(1, speed - 1));
-                break;
-            case 1: // Réduction de portée
-                bombRange = Math.max(1, bombRange - 1);
-                break;
-            case 2: // Réduction du nombre de bombes
-                maxBombs = Math.max(1, maxBombs - 1);
-                break;
-            case 3: // Perte du kick
-                canKickBombs = false;
-                break;
-        }
+        
+        // Effet de la malédiction: perte de tous les power-ups
+        maxBombs = 1;    // Retour à 1 bombe
+        bombRange = 1;   // Retour à portée 1
+        
+        // Jouer un son spécial pour la malédiction
+        SoundManager.getInstance().playSound("skull_effect");
     }
 
     /**
@@ -435,7 +353,7 @@ public class Player extends MovableEntity {
         lives--;
         if (lives <= 0) {
             lives = 0;
-            SoundManager.getInstance().playSound("bomb_explode"); // Utiliser bomb_explode au lieu de player_death
+            SoundManager.getInstance().playSound("bomb_explode");
         } else {
             // Téléporter à la position de spawn et rendre invincible
             respawn();
@@ -467,7 +385,7 @@ public class Player extends MovableEntity {
     }
 
     /**
-     * Remet le joueur à son état initial (nouvelle partie)
+     * Réinitialise le joueur à sa position de départ
      */
     public void reset(int startX, int startY) {
         this.x = startX;
@@ -478,31 +396,23 @@ public class Player extends MovableEntity {
         this.maxBombs = 1;
         this.currentBombs = 0;
         this.bombRange = 1;
-        this.speed = 1;
-        this.canKickBombs = false;
         this.hasSkull = false;
-        this.skullEndTime = 0;
-        this.lastMoveTime = 0;
         this.isInvincible = false;
-        this.invincibilityEndTime = 0;
     }
 
     /**
      * Retourne une description des power-ups actifs
      */
     public String getPowerUpDescription() {
-        StringBuilder desc = new StringBuilder();
-        if (speed > 1) desc.append("Vitesse ").append(speed).append(", ");
-        if (bombRange > 1) desc.append("Portée ").append(bombRange).append(", ");
-        if (maxBombs > 1) desc.append("Bombes ").append(maxBombs).append(", ");
-        if (canKickBombs) desc.append("Kick, ");
+        StringBuilder description = new StringBuilder();
+        description.append("Bombes: ").append(maxBombs);
+        description.append(", Portée: ").append(bombRange);
         
-        if (desc.length() > 0) {
-            desc.setLength(desc.length() - 2); // Supprimer la dernière virgule et espace
-            return desc.toString();
-        } else {
-            return "Standard";
+        if (hasSkull) {
+            description.append(" [MAUDIT]");
         }
+        
+        return description.toString();
     }
 
     // Getters et Setters
@@ -520,12 +430,6 @@ public class Player extends MovableEntity {
     public void setMaxBombs(int maxBombs) { this.maxBombs = Math.max(1, maxBombs); }
     
     public int getCurrentBombs() { return currentBombs; }
-    
-    public int getSpeed() { return speed; }
-    public void setSpeed(int speed) { this.speed = Math.max(1, Math.min(5, speed)); }
-    
-    public boolean canKickBombs() { return canKickBombs; }
-    public void setCanKickBombs(boolean canKick) { this.canKickBombs = canKick; }
     
     public boolean hasSkull() { return hasSkull; }
 }

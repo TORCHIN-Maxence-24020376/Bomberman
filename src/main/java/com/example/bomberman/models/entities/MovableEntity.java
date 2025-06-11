@@ -7,24 +7,17 @@ import com.example.bomberman.models.world.GameBoard;
  * Exemples: joueurs, ennemis
  */
 public abstract class MovableEntity extends Entity {
-    // Vitesse de déplacement
-    protected int speed;
     // Temps du dernier déplacement
     protected long lastMoveTime;
-    // Délai de base entre les déplacements
-    protected long baseMoveDelay;
     
     /**
      * Constructeur
      * @param x Position X initiale
      * @param y Position Y initiale
-     * @param speed Vitesse initiale
      */
-    public MovableEntity(int x, int y, int speed) {
+    public MovableEntity(int x, int y) {
         super(x, y);
-        this.speed = speed;
         this.lastMoveTime = 0;
-        this.baseMoveDelay = 200; // 200ms par défaut
     }
     
     /**
@@ -32,10 +25,8 @@ public abstract class MovableEntity extends Entity {
      * @return true si l'entité peut se déplacer
      */
     public boolean canMove() {
-        // Calcul du délai avec bonus de vitesse de 10% par niveau
-        double speedFactor = 1.0 + (speed * 0.1); // 10% par niveau de vitesse
-        long moveDelay = (long)(baseMoveDelay / speedFactor);
-        return System.currentTimeMillis() - lastMoveTime >= moveDelay;
+        // Système de déplacement simple avec délai fixe
+        return System.currentTimeMillis() - lastMoveTime >= 200; // 200ms de délai fixe entre les déplacements
     }
     
     /**
@@ -53,28 +44,12 @@ public abstract class MovableEntity extends Entity {
         int newX = x + dx;
         int newY = y + dy;
         
-        // Vérifier si la case est libre ou s'il y a une bombe
+        // Vérifier si la case est libre
         if (board.isValidMove(newX, newY)) {
             x = newX;
             y = newY;
             lastMoveTime = System.currentTimeMillis();
             return true;
-        } else if (board.isBomb(newX, newY)) {
-            // Si c'est une bombe, essayer de la pousser
-            int bombNewX = newX + dx;
-            int bombNewY = newY + dy;
-            
-            // Vérifier si la nouvelle position de la bombe est valide
-            if (board.isValidMove(bombNewX, bombNewY)) {
-                // Déplacer la bombe
-                board.moveBomb(newX, newY, bombNewX, bombNewY);
-                
-                // Déplacer le joueur
-                x = newX;
-                y = newY;
-                lastMoveTime = System.currentTimeMillis();
-                return true;
-            }
         }
         
         return false;
@@ -88,14 +63,5 @@ public abstract class MovableEntity extends Entity {
     public void forcePosition(int newX, int newY) {
         this.x = newX;
         this.y = newY;
-    }
-    
-    // Getters et setters
-    public int getSpeed() {
-        return speed;
-    }
-    
-    public void setSpeed(int speed) {
-        this.speed = Math.max(1, Math.min(5, speed)); // Limité entre 1 et 5
     }
 } 

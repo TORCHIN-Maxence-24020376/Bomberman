@@ -1,11 +1,8 @@
 package com.example.bomberman.tests.models.entities;
 
-import com.example.bomberman.models.entities.PlayerProfile;
 import com.example.bomberman.utils.ResourceManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayerProfileTest {
 

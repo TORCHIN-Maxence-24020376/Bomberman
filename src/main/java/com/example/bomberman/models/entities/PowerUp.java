@@ -1,5 +1,6 @@
 package com.example.bomberman.models.entities;
 
+import com.example.bomberman.service.SoundManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -13,13 +14,13 @@ public class PowerUp extends StaticEntity {
     public enum Type {
         BOMB_UP,     // Augmente le nombre de bombes
         FIRE_UP,     // Augmente la portée des bombes
-        SPEED_UP,    // Augmente la vitesse du joueur
-        KICK,        // Permet de pousser les bombes
         SKULL        // Malédiction (effet négatif)
     }
 
     private Type type;
     private static final long BLINK_DURATION = 10000; // 10 secondes avant disparition
+    private boolean isInvincible; // Invincibilité temporaire
+    private static final long INVINCIBILITY_DURATION = 500; // 500ms d'invincibilité
 
     /**
      * Constructeur d'un power-up
@@ -30,6 +31,7 @@ public class PowerUp extends StaticEntity {
     public PowerUp(int x, int y, Type type) {
         super(x, y);
         this.type = type;
+        this.isInvincible = true; // Invincible à la création
     }
 
     @Override
@@ -37,6 +39,11 @@ public class PowerUp extends StaticEntity {
         // Le power-up disparaît après un certain temps
         if (getElapsedTime() > BLINK_DURATION && isActive) {
             deactivate();
+        }
+        
+        // Fin de l'invincibilité après 500ms
+        if (isInvincible && getElapsedTime() > INVINCIBILITY_DURATION) {
+            isInvincible = false;
         }
     }
 
@@ -53,6 +60,26 @@ public class PowerUp extends StaticEntity {
      */
     public boolean shouldRemove() {
         return !isActive || getElapsedTime() > BLINK_DURATION;
+    }
+    
+    /**
+     * Vérifie si le power-up est actuellement invincible
+     */
+    public boolean isInvincible() {
+        return isInvincible;
+    }
+    
+    /**
+     * Tente de détruire le power-up
+     * @return true si le power-up a été détruit, false s'il est invincible
+     */
+    public boolean tryDestroy() {
+        if (isInvincible) {
+            return false;
+        }
+        deactivate();
+        SoundManager.getInstance().playSound("powerup_destroy");
+        return true;
     }
 
     @Override
@@ -82,12 +109,6 @@ public class PowerUp extends StaticEntity {
             case FIRE_UP:
                 sprite = spriteManager.loadSprite("bomb_range");
                 break;
-            case SPEED_UP:
-                sprite = spriteManager.loadSprite("speed");
-                break;
-            case KICK:
-                sprite = spriteManager.loadSprite("bomb_kick");
-                break;
             case SKULL:
                 sprite = spriteManager.loadSprite("doomed");
                 break;
@@ -115,20 +136,6 @@ public class PowerUp extends StaticEntity {
                     gc.fillText("F+", centerX - 10, centerY + 5);
                     break;
                     
-                case SPEED_UP:
-                    gc.setFill(Color.CYAN);
-                    gc.fillRect(x * tileSize + 5, y * tileSize + 5, size, size);
-                    gc.setFill(Color.BLACK);
-                    gc.fillText("S+", centerX - 10, centerY + 5);
-                    break;
-
-                case KICK:
-                    gc.setFill(Color.GREEN);
-                    gc.fillRect(x * tileSize + 5, y * tileSize + 5, size, size);
-                    gc.setFill(Color.WHITE);
-                    gc.fillText("K", centerX - 5, centerY + 5);
-                    break;
-
                 case SKULL:
                     gc.setFill(Color.PURPLE);
                     gc.fillRect(x * tileSize + 5, y * tileSize + 5, size, size);

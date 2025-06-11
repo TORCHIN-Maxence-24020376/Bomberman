@@ -167,53 +167,40 @@ public class GameBoard {
      */
     public void placeBomb(int x, int y) {
         if (x >= 0 && x < width && y >= 0 && y < height) {
-            board[y][x] = BOMB;
-        }
-    }
-
-    /**
-     * Retire une bombe du plateau
-     */
-    public void removeBomb(int x, int y) {
-        if (x >= 0 && x < width && y >= 0 && y < height && board[y][x] == BOMB) {
-            board[y][x] = EMPTY;
-        }
-    }
-    
-    /**
-     * Déplace une bombe d'une position à une autre
-     */
-    public void moveBomb(int fromX, int fromY, int toX, int toY) {
-        if (fromX >= 0 && fromX < width && fromY >= 0 && fromY < height &&
-            toX >= 0 && toX < width && toY >= 0 && toY < height) {
-            
-            // Vérifier que la position source contient une bombe et que la destination est vide
-            if (board[fromY][fromX] == BOMB && board[toY][toX] == EMPTY) {
-                board[fromY][fromX] = EMPTY;
-                board[toY][toX] = BOMB;
-                
-                // Jouer un son de déplacement de bombe
-                SoundManager.getInstance().playSound("bomb_kick");
+            if (board[y][x] == EMPTY) {
+                board[y][x] = BOMB;
             }
         }
     }
 
     /**
-     * Crée une explosion à la position donnée
+     * Enlève une bombe d'une position
+     */
+    public void removeBomb(int x, int y) {
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            if (board[y][x] == BOMB) {
+                board[y][x] = EMPTY;
+            }
+        }
+    }
+
+    /**
+     * Déclenche une explosion à une position
      */
     public void explode(int x, int y) {
         if (x >= 0 && x < width && y >= 0 && y < height) {
             boolean wasDestructibleWall = (board[y][x] == DESTRUCTIBLE_WALL);
-
-            if (board[y][x] == DESTRUCTIBLE_WALL) {
-                board[y][x] = EMPTY; // Détruire le mur
-
-                // Chance d'apparition d'un power-up
-                if (Math.random() < POWERUP_SPAWN_CHANCE) {
-                    spawnRandomPowerUp(x, y);
-                }
+            
+            // Si c'était un mur destructible, on le détruit et on peut faire apparaître un power-up
+            if (wasDestructibleWall) {
+                board[y][x] = EMPTY;
+                spawnRandomPowerUp(x, y);
             }
-
+            
+            // Détruire les power-ups qui se trouvent sur cette case
+            destroyPowerUpsAt(x, y);
+            
+            // Si ce n'est pas un mur indestructible, on peut y mettre une explosion
             if (board[y][x] != WALL) {
                 board[y][x] = EXPLOSION;
                 explosionTime[y][x] = System.currentTimeMillis();
@@ -222,26 +209,43 @@ public class GameBoard {
     }
 
     /**
-     * Fait apparaître un power-up aléatoire
+     * Détruit les power-ups à une position donnée
+     */
+    private void destroyPowerUpsAt(int x, int y) {
+        Iterator<PowerUp> iterator = powerUps.iterator();
+        while (iterator.hasNext()) {
+            PowerUp powerUp = iterator.next();
+            if (powerUp.getX() == x && powerUp.getY() == y && powerUp.isActive()) {
+                powerUp.tryDestroy();
+            }
+        }
+    }
+
+    /**
+     * Fait apparaître un power-up aléatoire à la position donnée
      */
     private void spawnRandomPowerUp(int x, int y) {
-        // Probabilités différentes pour chaque type
-        double random = Math.random();
-        PowerUp.Type selectedType;
-
-        if (random < 0.3) {
-            selectedType = PowerUp.Type.BOMB_UP;
-        } else if (random < 0.6) {
-            selectedType = PowerUp.Type.FIRE_UP;
-        } else if (random < 0.75) {
-            selectedType = PowerUp.Type.SPEED_UP;
-        } else if (random < 0.9) {
-            selectedType = PowerUp.Type.KICK;
-        } else {
-            selectedType = PowerUp.Type.SKULL; // Plus rare
+        if (Math.random() < POWERUP_SPAWN_CHANCE) {
+            // Choisir un type de power-up aléatoire
+            PowerUp.Type[] powerUpTypes = {
+                PowerUp.Type.BOMB_UP,
+                PowerUp.Type.FIRE_UP,
+                PowerUp.Type.SKULL
+            };
+            
+            // Sélectionner un type aléatoire (avec une plus faible chance pour le crâne)
+            PowerUp.Type selectedType;
+            if (Math.random() < 0.15) { // 15% de chance d'avoir un crâne
+                selectedType = PowerUp.Type.SKULL;
+            } else {
+                // Choisir parmi les autres power-ups (sauf le crâne)
+                selectedType = powerUpTypes[(int)(Math.random() * (powerUpTypes.length - 1))];
+            }
+            
+            // Créer et ajouter le power-up
+            PowerUp powerUp = new PowerUp(x, y, selectedType);
+            powerUps.add(powerUp);
         }
-
-        powerUps.add(new PowerUp(x, y, selectedType));
     }
 
     /**

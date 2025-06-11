@@ -1,8 +1,5 @@
 package com.example.bomberman.tests.models.world;
 
-import com.example.bomberman.models.entities.Bomb;
-import com.example.bomberman.models.entities.Player;
-import com.example.bomberman.models.entities.PlayerProfile;
 import com.example.bomberman.models.world.Game;
 import com.example.bomberman.models.world.GameBoard;
 import com.example.bomberman.service.SoundManager;

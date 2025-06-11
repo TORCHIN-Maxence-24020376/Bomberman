@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.bomberman.controller.GameController"
-            styleClass="root">
+<BorderPane styleClass="root" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bomberman.controller.GameController">
 
   <!-- HUD style Bomberman classique en haut -->
   <top>
     <VBox spacing="0">
       <!-- Barre d'informations avec icônes -->
-      <HBox styleClass="hud-container" alignment="CENTER" spacing="10">
+      <HBox alignment="CENTER" spacing="10" styleClass="hud-container">
         <!-- Joueur 1 -->
-        <HBox styleClass="hud-item" alignment="CENTER">
+        <HBox alignment="CENTER" styleClass="hud-item">
           <Label styleClass="hud-icon" text="👤" />
           <Label styleClass="player1-name" text="P1" />
         </HBox>
         
         <!-- Vies Joueur 1 -->
-        <HBox styleClass="hud-item" alignment="CENTER">
-          <Label styleClass="hud-icon" text="❤️" />
+        <HBox alignment="CENTER" styleClass="hud-item">
+          <Label styleClass="hud-icon" text="❤" />
           <Label fx:id="player1LivesLabel" styleClass="hud-value" text="3" />
         </HBox>
         
         <!-- Bombes Joueur 1 -->
-        <HBox styleClass="hud-item" alignment="CENTER">
+        <HBox alignment="CENTER" styleClass="hud-item">
           <Label styleClass="hud-icon" text="💣" />
           <Label fx:id="player1BombsLabel" styleClass="hud-value" text="1" />
         </HBox>
@@ -39,26 +35,26 @@
         <Region HBox.hgrow="ALWAYS" />
         
         <!-- Bombes Joueur 2 -->
-        <HBox styleClass="hud-item" alignment="CENTER">
+        <HBox alignment="CENTER" styleClass="hud-item">
           <Label styleClass="hud-icon" text="💣" />
           <Label fx:id="player2BombsLabel" styleClass="hud-value" text="1" />
         </HBox>
         
         <!-- Vies Joueur 2 -->
-        <HBox styleClass="hud-item" alignment="CENTER">
-          <Label styleClass="hud-icon" text="❤️" />
+        <HBox alignment="CENTER" styleClass="hud-item">
+          <Label styleClass="hud-icon" text="❤" />
           <Label fx:id="player2LivesLabel" styleClass="hud-value" text="3" />
         </HBox>
         
         <!-- Joueur 2 -->
-        <HBox styleClass="hud-item" alignment="CENTER">
+        <HBox alignment="CENTER" styleClass="hud-item">
           <Label styleClass="player2-name" text="P2" />
           <Label styleClass="hud-icon" text="👤" />
         </HBox>
       </HBox>
       
       <!-- Barre de statut du jeu -->
-      <HBox fx:id="gameStatusBar" styleClass="game-header" alignment="CENTER">
+      <HBox fx:id="gameStatusBar" alignment="CENTER" styleClass="game-header">
         <Label fx:id="gameStatusLabel" text="En cours" />
       </HBox>
     </VBox>
@@ -67,20 +63,16 @@
   <!-- Centre avec le canvas de jeu -->
   <center>
     <StackPane styleClass="canvas-container">
-      <Canvas fx:id="gameCanvas" height="520.0" width="600.0"
-              onKeyPressed="#handleKeyPressed"
-              onKeyReleased="#handleKeyReleased"
-              styleClass="game-canvas" />
+      <Canvas fx:id="gameCanvas" height="520.0" onKeyPressed="#handleKeyPressed" onKeyReleased="#handleKeyReleased" styleClass="game-canvas" width="600.0" />
               
       <!-- Panneau de fin de jeu (invisible par défaut) -->
-      <VBox fx:id="gameOverPanel" alignment="CENTER" spacing="20" visible="false"
-            styleClass="game-over-panel">
-        <Label text="PARTIE TERMINÉE" styleClass="game-over-title" />
-        <Label fx:id="winnerLabel" text="Joueur X gagne!" styleClass="winner-name" />
-        <Label fx:id="finalScoreLabel" text="Score: 0 - 0" styleClass="final-score" />
+      <VBox fx:id="gameOverPanel" alignment="CENTER" spacing="20" styleClass="game-over-panel" visible="false">
+        <Label styleClass="game-over-title" text="PARTIE TERMINÉE" />
+        <Label fx:id="winnerLabel" styleClass="winner-name" text="Joueur X gagne!" />
+        <Label fx:id="finalScoreLabel" styleClass="final-score" text="Score: 0 - 0" />
         <HBox alignment="CENTER" spacing="20">
-          <Button text="Rejouer" onAction="#restartGame" styleClass="control-button restart-button" />
-          <Button text="Menu Principal" onAction="#returnToMainMenu" styleClass="control-button quit-button" />
+          <Button onAction="#restartGame" styleClass="control-button restart-button" text="Rejouer" />
+          <Button onAction="#returnToMainMenu" styleClass="control-button quit-button" text="Menu Principal" />
         </HBox>
       </VBox>
     </StackPane>

@@ -220,6 +220,14 @@ public class Game {
         // Explosion au centre
         board.explode(x, y);
         
+        // On attend un peu avant de propager l'explosion dans les 4 directions
+        // pour que les joueurs aient le temps de ramasser les power-ups
+        try {
+            Thread.sleep(200); // Attente de 200ms
+        } catch (InterruptedException e) {
+            // Ignorer l'interruption
+        }
+        
         // Explosion dans les 4 directions, limitée par la portée et s'arrêtant aux murs
         // Direction: droite
         for (int i = 1; i <= range; i++) {

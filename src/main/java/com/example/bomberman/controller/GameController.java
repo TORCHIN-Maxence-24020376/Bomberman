@@ -460,11 +460,11 @@ public class GameController implements Initializable {
             }
             
             if (player1SpeedLabel != null) {
-                player1SpeedLabel.setText(String.valueOf(player1.getSpeed()));
+                player1SpeedLabel.setText("1");
             }
             
             if (player2SpeedLabel != null) {
-                player2SpeedLabel.setText(String.valueOf(player2.getSpeed()));
+                player2SpeedLabel.setText("1");
             }
         }
     }
