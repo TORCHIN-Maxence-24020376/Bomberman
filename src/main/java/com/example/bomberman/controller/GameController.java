@@ -3,6 +3,7 @@ package com.example.bomberman.controller;
 import com.example.bomberman.models.entities.Bomb;
 import com.example.bomberman.models.entities.Player;
 import com.example.bomberman.models.entities.PlayerProfile;
+import com.example.bomberman.models.world.BotGame;
 import com.example.bomberman.models.world.Game;
 import com.example.bomberman.models.world.GameBoard;
 import com.example.bomberman.service.ProfileManager;
@@ -68,6 +69,10 @@ public class GameController implements Initializable {
     // Mode test de l'éditeur
     private boolean isTestMode = false;
     private Stage levelEditorStage = null;
+    
+    // Attributs pour le mode bot
+    private boolean isBotMode = false;
+    private BotGame botGame = null;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -183,9 +188,17 @@ public class GameController implements Initializable {
             if (!player1.isAlive() && !player2.isAlive()) {
                 winMessage = "Match nul !";
             } else if (!player1.isAlive()) {
-                winMessage = "Joueur 2 gagne !";
+                if (isBotMode) {
+                    winMessage = "Le Bot gagne !";
+                } else {
+                    winMessage = "Joueur 2 gagne !";
+                }
             } else {
-                winMessage = "Joueur 1 gagne !";
+                if (isBotMode) {
+                    winMessage = "Vous avez gagné !";
+                } else {
+                    winMessage = "Joueur 1 gagne !";
+                }
             }
 
             // Afficher l'écran de fin
@@ -329,7 +342,7 @@ public class GameController implements Initializable {
 
                         // Charger CSS si disponible
                         try {
-                            var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                            URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
                             if (cssResource != null) {
                                 menuScene.getStylesheets().add(cssResource.toExternalForm());
                             }
@@ -499,16 +512,16 @@ public class GameController implements Initializable {
      * Met à jour les informations des joueurs
      */
     private void updatePlayerInfo() {
-        if (player1InfoLabel != null && game.getPlayer1() != null) {
-            String player1Info = "Joueur 1 - Vies: " + game.getPlayer1().getLives() +
-                    " - Score: " + game.getPlayer1Score();
-            player1InfoLabel.setText(player1Info);
-        }
-
-        if (player2InfoLabel != null && game.getPlayer2() != null) {
-            String player2Info = "Joueur 2 - Vies: " + game.getPlayer2().getLives() +
-                    " - Score: " + game.getPlayer2Score();
-            player2InfoLabel.setText(player2Info);
+        if (player1InfoLabel != null && player2InfoLabel != null) {
+            Player player1 = game.getPlayer1();
+            Player player2 = game.getPlayer2();
+            
+            String player1Name = player1.getProfile() != null ? player1.getProfile().getFullName() : "Joueur 1";
+            String player2Name = isBotMode ? "Bot" : (player2.getProfile() != null ? player2.getProfile().getFullName() : "Joueur 2");
+            
+            // Utiliser les méthodes appropriées pour obtenir les informations des bombes
+            player1InfoLabel.setText(player1Name + " - Score: " + game.getPlayer1Score());
+            player2InfoLabel.setText(player2Name + " - Score: " + game.getPlayer2Score());
         }
     }
 
@@ -633,7 +646,7 @@ public class GameController implements Initializable {
                 
                 // Charger le CSS
                 try {
-                    var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                    URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
                     if (cssResource != null) {
                         editorScene.getStylesheets().add(cssResource.toExternalForm());
                     }
@@ -649,6 +662,53 @@ public class GameController implements Initializable {
                 e.printStackTrace();
                 showAlert("Erreur", "Impossible de retourner à l'éditeur de niveaux.", Alert.AlertType.ERROR);
             }
+        }
+    }
+
+    /**
+     * Charger le CSS s'il existe
+     */
+    private void loadCSS(Scene scene) {
+        try {
+            URL cssResource = getClass().getResource("/com/example/bomberman/styles.css");
+            if (cssResource != null) {
+                scene.getStylesheets().add(cssResource.toExternalForm());
+            }
+        } catch (Exception cssError) {
+            System.out.println("CSS non trouvé, continuation sans styles");
+        }
+    }
+
+    /**
+     * Configure le jeu pour utiliser le mode bot
+     * @param botGame Instance de BotGame à utiliser
+     */
+    public void setBotGame(BotGame botGame) {
+        if (botGame != null) {
+            this.botGame = botGame;
+            this.game = botGame; // BotGame hérite de Game, donc on peut l'utiliser comme un Game
+            this.isBotMode = true;
+            
+            // Mettre à jour l'interface pour le mode bot
+            updateUI();
+            
+            // Afficher un message indiquant le niveau de difficulté
+            String difficultyText;
+            switch (botGame.getDifficultyLevel()) {
+                case 1:
+                    difficultyText = "Facile";
+                    break;
+                case 2:
+                    difficultyText = "Moyen";
+                    break;
+                case 3:
+                    difficultyText = "Difficile";
+                    break;
+                default:
+                    difficultyText = "Inconnu";
+            }
+            
+            gameStatusLabel.setText("Mode Bot - Difficulté: " + difficultyText);
         }
     }
 }

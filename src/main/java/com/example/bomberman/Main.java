@@ -1,4 +1,5 @@
 package com.example.bomberman;
+
 import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
 import javafx.application.Application;

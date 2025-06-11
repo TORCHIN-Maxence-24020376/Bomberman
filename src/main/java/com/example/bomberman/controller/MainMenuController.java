@@ -1,6 +1,7 @@
 package com.example.bomberman.controller;
 
 import com.example.bomberman.models.entities.PlayerProfile;
+import com.example.bomberman.models.world.BotGame;
 import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
 import javafx.application.Platform;
@@ -15,6 +16,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
@@ -23,6 +25,7 @@ import java.util.ResourceBundle;
 public class MainMenuController implements Initializable {
 
     @FXML private Button playButton;
+    @FXML private Button playBotButton;
     @FXML private Button profilesButton;
     @FXML private Button settingsButton;
     @FXML private Button levelEditorButton;
@@ -51,6 +54,7 @@ public class MainMenuController implements Initializable {
     private void initializeComponents() {
         // Configuration des boutons
         playButton.setOnAction(e -> startGame());
+        playBotButton.setOnAction(e -> startBotGame());
         profilesButton.setOnAction(e -> openProfilesManagement());
         settingsButton.setOnAction(e -> openSettings());
         levelEditorButton.setOnAction(e -> openLevelEditor());
@@ -113,7 +117,7 @@ public class MainMenuController implements Initializable {
 
             // Charger le CSS s'il existe
             try {
-                var cssResource = getClass().getResource("/com/example/bomberman/styles.css");
+                URL cssResource = getClass().getResource("/com/example/bomberman/styles.css");
                 if (cssResource != null) {
                     gameScene.getStylesheets().add(cssResource.toExternalForm());
                 }
@@ -133,6 +137,101 @@ public class MainMenuController implements Initializable {
             // Fallback : lancer le jeu directement sans menu
             launchBasicGame();
         }
+    }
+    
+    /**
+     * Démarre une nouvelle partie contre un bot
+     */
+    @FXML
+    private void startBotGame() {
+        try {
+            soundManager.stopBackgroundMusic();
+            
+            // Demander le niveau de difficulté
+            int difficultyLevel = showDifficultyDialog();
+            if (difficultyLevel == 0) {
+                // L'utilisateur a annulé
+                return;
+            }
+            
+            // Charger la scène de jeu
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+            Parent gameRoot = loader.load();
+            
+            // Récupérer le contrôleur de jeu
+            GameController gameController = loader.getController();
+            
+            // Créer une instance de BotGame avec le niveau de difficulté choisi
+            BotGame botGame = new BotGame(difficultyLevel);
+            
+            // Configurer le contrôleur pour utiliser BotGame au lieu de Game
+            gameController.setBotGame(botGame);
+            
+            // Définir le profil du joueur
+            String selectedProfile = player1Combo.getValue();
+            if (selectedProfile != null) {
+                PlayerProfile profile = profileManager.findProfile(selectedProfile);
+                if (profile != null) {
+                    botGame.setHumanPlayerProfile(profile);
+                }
+            }
+            
+            // Changer de scène
+            Stage stage = (Stage) playBotButton.getScene().getWindow();
+            Scene gameScene = new Scene(gameRoot, 800, 600);
+            
+            // Charger le CSS s'il existe
+            try {
+                URL cssResource = getClass().getResource("/com/example/bomberman/styles.css");
+                if (cssResource != null) {
+                    gameScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé, continuation sans styles");
+            }
+            
+            stage.setScene(gameScene);
+            stage.setTitle("Super Bomberman - Mode Bot (Niveau " + difficultyLevel + ")");
+            
+            System.out.println("Jeu contre bot lancé avec succès ! Niveau de difficulté: " + difficultyLevel);
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de charger le jeu contre bot.", Alert.AlertType.ERROR);
+        }
+    }
+    
+    /**
+     * Affiche une boîte de dialogue pour choisir la difficulté du bot
+     * @return Le niveau de difficulté (1-3) ou 0 si annulé
+     */
+    private int showDifficultyDialog() {
+        Dialog<Integer> dialog = new Dialog<>();
+        dialog.setTitle("Difficulté du Bot");
+        dialog.setHeaderText("Choisissez le niveau de difficulté du bot");
+        
+        // Boutons
+        ButtonType easyButton = new ButtonType("Facile", ButtonBar.ButtonData.OK_DONE);
+        ButtonType mediumButton = new ButtonType("Moyen", ButtonBar.ButtonData.OK_DONE);
+        ButtonType hardButton = new ButtonType("Difficile", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        
+        dialog.getDialogPane().getButtonTypes().addAll(easyButton, mediumButton, hardButton, cancelButton);
+        
+        // Convertir le résultat
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == easyButton) {
+                return 1;
+            } else if (dialogButton == mediumButton) {
+                return 2;
+            } else if (dialogButton == hardButton) {
+                return 3;
+            }
+            return 0; // Annulé
+        });
+        
+        Optional<Integer> result = dialog.showAndWait();
+        return result.orElse(0);
     }
 
     /**
@@ -206,7 +305,7 @@ public class MainMenuController implements Initializable {
 
             // Charger le CSS s'il existe
             try {
-                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
                 if (cssResource != null) {
                     editorScene.getStylesheets().add(cssResource.toExternalForm());
                 }
@@ -254,15 +353,15 @@ public class MainMenuController implements Initializable {
     }
 
     /**
-     * Retourne au menu principal depuis une autre vue
+     * Retourne au menu principal
      */
     public void returnToMenu() {
-        loadProfiles(); // Actualiser les profils
-        soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
+        // Cette méthode est appelée depuis d'autres contrôleurs
+        // Elle est vide car nous sommes déjà dans le menu
     }
 
     /**
-     * Actualise l'affichage des profils
+     * Rafraîchit la liste des profils
      */
     public void refreshProfiles() {
         loadProfiles();
