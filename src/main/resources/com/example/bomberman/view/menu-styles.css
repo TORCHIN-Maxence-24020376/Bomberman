@@ -1,0 +1,185 @@
+/* Styles pour le menu principal */
+
+/* Couleurs principales */
+* {
+    -fx-primary-color: #1A1A2E;
+    -fx-secondary-color: #16213E;
+    -fx-accent-color: #FF5722;
+    -fx-focus-color: #FF8A65;
+    -fx-text-color: #E9E9E9;
+    -fx-text-secondary-color: #B0B0B0;
+}
+
+/* Style général */
+.root {
+    -fx-background-color: -fx-primary-color;
+    -fx-background-image: url("../Images/default/background.png");
+    -fx-background-repeat: stretch;
+    -fx-background-size: cover;
+    -fx-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Conteneur principal */
+.main-menu {
+    -fx-background-color: rgba(26, 26, 46, 0.85);
+    -fx-background-radius: 15px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 15, 0, 0, 0);
+}
+
+/* Titre principal */
+.main-title {
+    -fx-text-fill: -fx-accent-color;
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(255,87,34,0.6), 15, 0, 0, 0);
+}
+
+/* Options du menu */
+#menuOptions {
+    -fx-spacing: 25px;
+    -fx-padding: 30px;
+}
+
+/* Boutons */
+.primary-button {
+    -fx-background-color: -fx-accent-color;
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px 25px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 0, 0);
+    -fx-transition: all 0.3s ease;
+}
+
+.primary-button:hover {
+    -fx-background-color: derive(-fx-accent-color, 10%);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 12, 0, 0, 0);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.primary-button:pressed {
+    -fx-background-color: derive(-fx-accent-color, -10%);
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.secondary-button {
+    -fx-background-color: rgba(255,255,255,0.1);
+    -fx-text-fill: -fx-text-color;
+    -fx-font-size: 16px;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 0);
+    -fx-transition: all 0.3s ease;
+}
+
+.secondary-button:hover {
+    -fx-background-color: rgba(255,255,255,0.2);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 0, 0);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+.secondary-button:pressed {
+    -fx-background-color: rgba(255,255,255,0.15);
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+.danger-button {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 0);
+    -fx-transition: all 0.3s ease;
+}
+
+.danger-button:hover {
+    -fx-background-color: #E53935;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 0, 0);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+.danger-button:pressed {
+    -fx-background-color: #D32F2F;
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+/* Informations de contrôle */
+.controls-info {
+    -fx-text-fill: -fx-text-secondary-color;
+    -fx-background-color: rgba(0,0,0,0.3);
+    -fx-padding: 10px 15px;
+    -fx-background-radius: 5px;
+}
+
+/* Animation du titre */
+#titleLabel {
+    -fx-transition: all 0.5s ease;
+}
+
+/* Boîtes de dialogue */
+.dialog-pane {
+    -fx-background-color: -fx-primary-color;
+    -fx-padding: 20px;
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: -fx-secondary-color;
+    -fx-padding: 15px;
+    -fx-background-radius: 5px 5px 0 0;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: -fx-text-color;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.dialog-pane .content {
+    -fx-background-color: derive(-fx-primary-color, 5%);
+    -fx-padding: 15px;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: -fx-text-color;
+}
+
+.dialog-pane .button-bar {
+    -fx-background-color: -fx-primary-color;
+    -fx-padding: 10px 0;
+}
+
+.dialog-pane .button {
+    -fx-background-color: -fx-accent-color;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 15px;
+    -fx-background-radius: 3px;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: derive(-fx-accent-color, 10%);
+}
+
+.dialog-pane .button:pressed {
+    -fx-background-color: derive(-fx-accent-color, -10%);
+}
+
+.dialog-pane .button.cancel-button {
+    -fx-background-color: rgba(255,255,255,0.2);
+}
+
+.dialog-pane .button.cancel-button:hover {
+    -fx-background-color: rgba(255,255,255,0.3);
+} 

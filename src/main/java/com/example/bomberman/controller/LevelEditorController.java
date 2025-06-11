@@ -749,8 +749,6 @@ public class LevelEditorController implements Initializable {
                 updateDimensionsLabel();
                 render();
                 
-                showAlert("Niveau chargé", "Le niveau a été chargé avec succès.", Alert.AlertType.INFORMATION);
-                
                 // Sauvegarder l'état actuel pour la récupération automatique
                 saveTemporaryState();
                 
@@ -832,52 +830,64 @@ public class LevelEditorController implements Initializable {
                 }
             }
 
-            // Récupérer la fenêtre actuelle
-            Stage currentStage = (Stage) editorCanvas.getScene().getWindow();
-            
             // Charger la scène de jeu avec le niveau créé
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+            URL gameViewUrl = getClass().getResource("/com/example/bomberman/view/game-view.fxml");
+            if (gameViewUrl == null) {
+                throw new IOException("Impossible de trouver le fichier game-view.fxml");
+            }
+            
+            FXMLLoader loader = new FXMLLoader(gameViewUrl);
             Parent gameRoot = loader.load();
 
-            // Récupérer le contrôleur de jeu et lui passer le niveau
+            // Obtenir le contrôleur de jeu et lui passer le niveau
             GameController gameController = loader.getController();
-            gameController.loadCustomLevel(tempFile.getAbsolutePath());
-            gameController.setTestMode(true);
-            gameController.setLevelEditorStage(currentStage);
+            
+            // Configurer le contrôleur de jeu pour utiliser le niveau temporaire
+            if (gameController != null) {
+                gameController.loadCustomLevel(tempFile.getAbsolutePath());
+                // Indiquer que c'est un test depuis l'éditeur
+                gameController.setTestMode(true);
+                gameController.setLevelEditorStage((Stage) testButton.getScene().getWindow());
+            }
 
-            // Calculer la taille de la fenêtre
-            int canvasWidth = levelWidth * TILE_SIZE;
-            int canvasHeight = levelHeight * TILE_SIZE;
+            // Changer de scène
+            Stage stage = (Stage) testButton.getScene().getWindow();
+            
+            // Calculer la taille de la fenêtre en fonction de la taille du niveau
+            int canvasWidth = Math.max(600, levelWidth * 40 + 40); // 40 = TILE_SIZE dans GameController
+            int canvasHeight = Math.max(520, levelHeight * 40 + 40);
+            
+            // Ajuster la taille du canvas dans la scène
+            Canvas gameCanvas = (Canvas) gameRoot.lookup("#gameCanvas");
+            if (gameCanvas != null) {
+                gameCanvas.setWidth(canvasWidth);
+                gameCanvas.setHeight(canvasHeight);
+            }
             
             // Calculer la taille totale de la fenêtre (canvas + panneaux latéraux)
-            int sceneWidth = canvasWidth + 500;
-            int sceneHeight = canvasHeight + 200;
+            int sceneWidth = canvasWidth + 200; // +200 pour le panneau latéral
+            int sceneHeight = canvasHeight + 100; // +100 pour les en-têtes/pieds
             
             Scene gameScene = new Scene(gameRoot, sceneWidth, sceneHeight);
-            
-            // Appliquer le CSS
+
+            // Charger le CSS pour le jeu
             try {
-                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
                 if (cssResource != null) {
                     gameScene.getStylesheets().add(cssResource.toExternalForm());
+                } else {
+                    System.err.println("Fichier CSS game-styles.css introuvable");
                 }
             } catch (Exception cssError) {
-                System.out.println("CSS non trouvé, continuation sans styles");
+                System.err.println("Erreur lors du chargement du CSS: " + cssError.getMessage());
             }
-            
-            // Remplacer la scène actuelle par la scène de jeu
-            currentStage.setScene(gameScene);
-            currentStage.setTitle("Test du Niveau");
-            
-            // S'assurer que la musique est changée si nécessaire
-            if (soundManager.isMusicEnabled()) {
-                soundManager.stopBackgroundMusic();
-                soundManager.playBackgroundMusic("game_music_A"); // Ou toute autre musique de jeu
-            }
+
+            stage.setScene(gameScene);
+            stage.setTitle("Super Bomberman - Test de niveau");
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de tester le niveau: " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur", "Impossible de tester le niveau : " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 

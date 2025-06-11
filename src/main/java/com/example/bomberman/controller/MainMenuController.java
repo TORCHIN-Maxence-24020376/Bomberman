@@ -78,12 +78,24 @@ public class MainMenuController implements Initializable {
     @FXML
     private void startNewGame() {
         try {
+            // Arrêter la musique du menu et jouer celle du jeu si la musique est activée
+            if (userPreferences.isMusicEnabled()) {
+                soundManager.stopBackgroundMusic();
+                soundManager.playBackgroundMusic("game_music");
+            }
+            
             // Charger la vue du jeu
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
             Parent gameRoot = loader.load();
             
             // Créer une nouvelle scène pour le jeu
             Scene gameScene = new Scene(gameRoot, 1000, 900);
+            
+            // Ajouter le CSS pour le jeu
+            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            if (cssResource != null) {
+                gameScene.getStylesheets().add(cssResource.toExternalForm());
+            }
             
             // Obtenir le stage actuel
             Stage stage = (Stage) playButton.getScene().getWindow();
