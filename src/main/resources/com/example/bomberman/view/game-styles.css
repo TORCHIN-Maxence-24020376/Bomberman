@@ -22,10 +22,10 @@
 
 /* En-tête du jeu - style arcade */
 .game-header {
-    -fx-background-color: orange;
+    -fx-background-color: #000000;
     -fx-padding: 5px;
     -fx-spacing: 5px;
-    -fx-border-color: #444444;
+    -fx-border-color: orange;
     -fx-border-width: 0 0 2px 0;
 }
 
@@ -186,15 +186,76 @@
     -fx-background-color: derive(-fx-danger-color, 10%);
 }
 
+/* Styles pour les dialogues et menus */
+.pause-menu {
+    -fx-background-color: rgba(0,0,0,0.9);
+    -fx-padding: 20px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0.0, 0, 5);
+}
+
+.pause-menu .header-panel {
+    -fx-background-color: -fx-accent-color;
+    -fx-padding: 10px;
+}
+
+.pause-menu .content {
+    -fx-padding: 15px;
+    -fx-spacing: 10px;
+}
+
+.pause-menu .button-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 10px 0;
+}
+
+.pause-menu .button {
+    -fx-background-radius: 0;
+    -fx-background-color: #333333;
+    -fx-text-fill: white;
+    -fx-padding: 10px 20px;
+    -fx-font-weight: bold;
+    -fx-border-width: 2px;
+    -fx-border-color: #666666;
+    -fx-cursor: hand;
+}
+
+.pause-menu .button:hover {
+    -fx-background-color: #444444;
+    -fx-border-color: -fx-accent-color;
+}
+
+.pause-menu .menu-button {
+    -fx-background-color: -fx-info-color;
+    -fx-border-color: derive(-fx-info-color, 30%);
+}
+
+.pause-menu .restart-button {
+    -fx-background-color: -fx-warning-color;
+    -fx-text-fill: black;
+    -fx-border-color: derive(-fx-warning-color, 30%);
+}
+
+.pause-menu .continue-button {
+    -fx-background-color: -fx-success-color;
+    -fx-border-color: derive(-fx-success-color, 30%);
+}
+
+.pause-menu .editor-button {
+    -fx-background-color: #9933CC;
+    -fx-border-color: derive(#9933CC, 30%);
+}
+
 /* Timer et informations de partie - style arcade */
 .timer-display {
-    -fx-font-size: 16px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-text-fill: -fx-warning-color;
-    -fx-padding: 5px;
+    -fx-text-fill: white;
+    -fx-padding: 5px 15px;
     -fx-background-color: #000000;
     -fx-border-color: #444444;
-    -fx-border-width: 1px;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0.0, 0, 1);
 }
 
 .game-info {
@@ -231,26 +292,28 @@
 /* HUD style Bomberman classique */
 .hud-container {
     -fx-background-color: orange;
-    -fx-padding: 5px;
+    -fx-padding: 8px;
     -fx-spacing: 10px;
     -fx-border-color: #444444;
-    -fx-border-width: 2px 0 0 0;
+    -fx-border-width: 2px 2px 2px 2px;
+    -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.4), 2, 0.0, 0, 1);
 }
 
 .hud-item {
     -fx-background-color: orange;
     -fx-padding: 2px 5px;
-    -fx-spacing: 2px;
+    -fx-spacing: 5px;
     -fx-alignment: center;
 }
 
 .hud-icon {
-    -fx-font-size: 16px;
+    -fx-font-size: 18px;
     -fx-text-fill: black;
+    -fx-font-weight: bold;
 }
 
 .hud-value {
-    -fx-font-size: 16px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
     -fx-text-fill: black;
 }
@@ -259,46 +322,40 @@
     -fx-background-color: #444444;
     -fx-pref-width: 2px;
     -fx-pref-height: 20px;
+    -fx-opacity: 0.8;
 }
 
-/* Séparateurs */
 .separator .line {
     -fx-border-color: #444444;
     -fx-border-width: 1px;
 }
 
-/* Scrollbars style arcade */
+/* Scrollbars */
 .scroll-bar:horizontal, .scroll-bar:vertical {
     -fx-background-color: #000000;
 }
 
 .scroll-bar:horizontal .track, .scroll-bar:vertical .track {
-    -fx-background-color: #000000;
-    -fx-border-color: #333333;
+    -fx-background-color: #333333;
+    -fx-border-color: #444444;
 }
 
 .scroll-bar:horizontal .thumb, .scroll-bar:vertical .thumb {
-    -fx-background-color: #444444;
-    -fx-background-radius: 0;
+    -fx-background-color: -fx-accent-color;
 }
 
 .scroll-bar:horizontal .thumb:hover, .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: #666666;
+    -fx-background-color: derive(-fx-accent-color, 10%);
 }
 
-/* Style pour les power-ups */
 .power-up-icon {
-    -fx-font-size: 14px;
-    -fx-text-fill: -fx-warning-color;
-    -fx-background-color: #000000;
-    -fx-border-color: #444444;
-    -fx-border-width: 1px;
-    -fx-padding: 2px;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
 }
 
-/* VS label */
+/* Style pour l'affichage des joueurs */
 .vs-label {
-    -fx-text-fill: -fx-accent-color;
+    -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-font-size: 16px;
+    -fx-text-fill: -fx-warning-color;
 } 

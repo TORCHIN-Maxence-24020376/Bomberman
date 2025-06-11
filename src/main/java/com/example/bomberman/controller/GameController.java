@@ -385,105 +385,145 @@ public class GameController implements Initializable {
             gc.fillText("Appuyez sur Échap pour reprendre", gameCanvas.getWidth()/2 - 120, gameCanvas.getHeight()/2 + 40);
         }
 
-        // Afficher les informations sur le canvas si les labels n'existent pas
-        if (player1InfoLabel == null || player2InfoLabel == null) {
-            renderGameInfo();
-        }
+        // Mettre à jour l'interface utilisateur
+        updateUI();
     }
 
     /**
      * Affiche les informations de jeu sur le canvas
      */
     private void renderGameInfo() {
-        gc.setFill(Color.WHITE);
-        gc.setFont(javafx.scene.text.Font.font("Arial", 14));
-
-        if (game.getPlayer1() != null) {
-            String player1Info = "Joueur 1 (ZQSD + A + E) - Vies: " + game.getPlayer1().getLives() +
-                    " - Score: " + game.getPlayer1Score();
-            gc.fillText(player1Info, 10, 20);
-        }
-
-        if (game.getPlayer2() != null) {
-            String player2Info = "Joueur 2 (Flèches + Espace + Ctrl) - Vies: " + game.getPlayer2().getLives() +
-                    " - Score: " + game.getPlayer2Score();
-            gc.fillText(player2Info, 10, 40);
-        }
-
-        String gameTime = "Temps de jeu: " + formatTime(getGameTime());
-        gc.fillText(gameTime, gameCanvas.getWidth() - 150, 20);
+        // Ne rien afficher sur le canvas - utiliser uniquement le HUD
+        updateUI();
     }
 
     /**
      * Met à jour l'interface utilisateur
      */
     private void updateUI() {
+        // Mettre à jour les informations des joueurs
         updatePlayerInfo();
-        updateGameStatus();
         
         // Mettre à jour le timer
-        long gameTime = getGameTime();
-        timerLabel.setText(formatTime(gameTime));
+        updateGameTimer();
     }
 
     /**
      * Met à jour les informations des joueurs
      */
     private void updatePlayerInfo() {
-        // Joueur 1
-        player1InfoLabel.setText("Joueur 1");
-        player1LivesLabel.setText(String.valueOf(game.getPlayer1().getLives()));
-        player1BombsLabel.setText(String.valueOf(game.getPlayer1().getMaxBombs()));
-        player1BombsInfoLabel.setText(String.valueOf(game.getPlayer1().getMaxBombs()));
-        player1RangeLabel.setText(String.valueOf(game.getPlayer1().getBombRange()));
-        player1SpeedLabel.setText(String.valueOf(game.getPlayer1().getSpeed()));
-
-        // Joueur 2
-        player2InfoLabel.setText("Joueur 2");
-        player2LivesLabel.setText(String.valueOf(game.getPlayer2().getLives()));
-        player2BombsLabel.setText(String.valueOf(game.getPlayer2().getMaxBombs()));
-        player2BombsInfoLabel.setText(String.valueOf(game.getPlayer2().getMaxBombs()));
-        player2RangeLabel.setText(String.valueOf(game.getPlayer2().getBombRange()));
-        player2SpeedLabel.setText(String.valueOf(game.getPlayer2().getSpeed()));
+        Player player1 = game.getPlayer1();
+        Player player2 = game.getPlayer2();
+        
+        // Mettre à jour les informations du HUD
+        if (player1BombsLabel != null) {
+            player1BombsLabel.setText(String.valueOf(player1.getMaxBombs() - player1.getCurrentBombs()));
+        }
+        
+        if (player2BombsLabel != null) {
+            player2BombsLabel.setText(String.valueOf(player2.getMaxBombs() - player2.getCurrentBombs()));
+        }
+        
+        if (player1LivesLabel != null) {
+            player1LivesLabel.setText(String.valueOf(player1.getLives()));
+        }
+        
+        if (player2LivesLabel != null) {
+            player2LivesLabel.setText(String.valueOf(player2.getLives()));
+        }
+        
+        // Mettre à jour les informations détaillées du panneau latéral
+        if (player1InfoLabel != null) {
+            player1InfoLabel.setText("Joueur 1 - Score: " + game.getPlayer1Score());
+        }
+        
+        if (player2InfoLabel != null) {
+            player2InfoLabel.setText("Joueur 2 - Score: " + game.getPlayer2Score());
+        }
+        
+        // Mettre à jour les informations détaillées du panneau latéral si présent
+        if (gameInfoPanel != null && gameInfoPanel.isVisible()) {
+            if (player1BombsInfoLabel != null) {
+                player1BombsInfoLabel.setText(String.valueOf(player1.getMaxBombs()));
+            }
+            
+            if (player2BombsInfoLabel != null) {
+                player2BombsInfoLabel.setText(String.valueOf(player2.getMaxBombs()));
+            }
+            
+            if (player1RangeLabel != null) {
+                player1RangeLabel.setText(String.valueOf(player1.getBombRange()));
+            }
+            
+            if (player2RangeLabel != null) {
+                player2RangeLabel.setText(String.valueOf(player2.getBombRange()));
+            }
+            
+            if (player1SpeedLabel != null) {
+                player1SpeedLabel.setText(String.valueOf(player1.getSpeed()));
+            }
+            
+            if (player2SpeedLabel != null) {
+                player2SpeedLabel.setText(String.valueOf(player2.getSpeed()));
+            }
+        }
     }
 
     /**
      * Met à jour le statut du jeu
      */
     private void updateGameStatus() {
-        if (gameStatusLabel != null && !isPaused) {
-            Platform.runLater(() -> {
-                long gameTime = getGameTime();
-                String timeText = String.format("Temps: %d:%02d", gameTime / 60, gameTime % 60);
-                gameStatusLabel.setText(timeText);
-            });
+        if (gameStatusLabel != null) {
+            if (isPaused) {
+                gameStatusLabel.setText("Jeu en pause");
+            } else if (gameRunning) {
+                gameStatusLabel.setText("En cours");
+            } else {
+                gameStatusLabel.setText("Partie terminée");
+            }
+        }
+        
+        // Mettre à jour le timer
+        updateGameTimer();
+    }
+    
+    /**
+     * Met à jour le chronomètre du jeu
+     */
+    private void updateGameTimer() {
+        if (timerLabel != null) {
+            long gameTimeSeconds = getGameTime() / 1000;
+            timerLabel.setText(formatTime(gameTimeSeconds));
         }
     }
 
     /**
-     * Obtient le temps de jeu en secondes
+     * Retourne le temps de jeu écoulé en millisecondes
      */
     private long getGameTime() {
         if (!gameRunning) {
-            return (pauseStartTime - gameStartTime - totalPauseTime) / 1000;
+            return 0;
         }
         
         long currentTime = System.currentTimeMillis();
+        long elapsedTime;
+        
         if (isPaused) {
-            return (pauseStartTime - gameStartTime - totalPauseTime) / 1000;
+            elapsedTime = pauseStartTime - gameStartTime - totalPauseTime;
         } else {
-            return (currentTime - gameStartTime - totalPauseTime) / 1000;
+            elapsedTime = currentTime - gameStartTime - totalPauseTime;
         }
+        
+        return Math.max(0, elapsedTime);
     }
-    
+
     /**
      * Formate le temps en minutes:secondes
      */
     private String formatTime(long timeInSeconds) {
-        if (timeInSeconds < 0) {
-            timeInSeconds = 0;
-        }
-        return String.format("%d:%02d", timeInSeconds / 60, timeInSeconds % 60);
+        long minutes = timeInSeconds / 60;
+        long seconds = timeInSeconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
     }
 
     /**
@@ -622,6 +662,20 @@ public class GameController implements Initializable {
         confirmAlert.setTitle("Menu de pause");
         confirmAlert.setHeaderText("Options");
         
+        // Styliser la boîte de dialogue
+        DialogPane dialogPane = confirmAlert.getDialogPane();
+        dialogPane.getStyleClass().add("pause-menu");
+        
+        // Appliquer un style CSS
+        Scene scene = dialogPane.getScene();
+        if (scene != null) {
+            try {
+                scene.getStylesheets().add(getClass().getResource("/com/example/bomberman/view/game-styles.css").toExternalForm());
+            } catch (Exception e) {
+                System.err.println("Erreur lors du chargement du CSS: " + e.getMessage());
+            }
+        }
+        
         // Boutons différents selon le mode
         ButtonType returnButton = new ButtonType("Retour au menu principal");
         ButtonType restartButton = new ButtonType("Nouvelle partie");
@@ -632,6 +686,29 @@ public class GameController implements Initializable {
             confirmAlert.getButtonTypes().setAll(editorButton, restartButton, returnButton, continueButton);
         } else {
             confirmAlert.getButtonTypes().setAll(restartButton, returnButton, continueButton);
+        }
+        
+        // Styliser les boutons
+        Button returnBtn = (Button) dialogPane.lookupButton(returnButton);
+        if (returnBtn != null) {
+            returnBtn.getStyleClass().add("menu-button");
+        }
+        
+        Button restartBtn = (Button) dialogPane.lookupButton(restartButton);
+        if (restartBtn != null) {
+            restartBtn.getStyleClass().add("restart-button");
+        }
+        
+        Button continueBtn = (Button) dialogPane.lookupButton(continueButton);
+        if (continueBtn != null) {
+            continueBtn.getStyleClass().add("continue-button");
+        }
+        
+        if (isTestMode) {
+            Button editorBtn = (Button) dialogPane.lookupButton(confirmAlert.getDialogPane().getButtonTypes().get(0));
+            if (editorBtn != null) {
+                editorBtn.getStyleClass().add("editor-button");
+            }
         }
 
         confirmAlert.showAndWait().ifPresent(response -> {

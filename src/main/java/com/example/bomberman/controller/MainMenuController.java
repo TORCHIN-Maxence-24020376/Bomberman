@@ -45,15 +45,15 @@ public class MainMenuController implements Initializable {
         soundManager = SoundManager.getInstance();
         userPreferences = UserPreferences.getInstance();
         resourceManager = ResourceManager.getInstance();
-        
+
         // Appliquer les préférences utilisateur
         userPreferences.applyPreferences();
-        
+
         // Jouer la musique du menu si elle est activée
         if (userPreferences.isMusicEnabled()) {
-            soundManager.playBackgroundMusic("menu");
-        }
-        
+        soundManager.playBackgroundMusic("menu");
+    }
+
         // Animation du titre
         animateTitle();
     }
@@ -80,30 +80,30 @@ public class MainMenuController implements Initializable {
         try {
             // Arrêter la musique du menu et jouer celle du jeu si la musique est activée
             if (userPreferences.isMusicEnabled()) {
-                soundManager.stopBackgroundMusic();
-                soundManager.playBackgroundMusic("game_music");
+            soundManager.stopBackgroundMusic();
+            soundManager.playBackgroundMusic("game_music");
             }
-            
+
             // Charger la vue du jeu
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
             Parent gameRoot = loader.load();
-            
+
             // Créer une nouvelle scène pour le jeu
             Scene gameScene = new Scene(gameRoot, 1000, 900);
             
             // Ajouter le CSS pour le jeu
             URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
-            if (cssResource != null) {
-                gameScene.getStylesheets().add(cssResource.toExternalForm());
+                if (cssResource != null) {
+                    gameScene.getStylesheets().add(cssResource.toExternalForm());
             }
-            
+
             // Obtenir le stage actuel
             Stage stage = (Stage) playButton.getScene().getWindow();
             
             // Changer la scène
             stage.setScene(gameScene);
             stage.setTitle("Super Bomberman - Partie en cours");
-            
+
         } catch (IOException e) {
             e.printStackTrace();
             showErrorAlert("Erreur au chargement du jeu", e.getMessage());
@@ -118,30 +118,30 @@ public class MainMenuController implements Initializable {
         try {
             // Arrêter la musique du menu et jouer celle de l'éditeur si la musique est activée
             if (userPreferences.isMusicEnabled()) {
-                soundManager.stopBackgroundMusic();
-                soundManager.playBackgroundMusic("editor_music");
+            soundManager.stopBackgroundMusic();
+            soundManager.playBackgroundMusic("editor_music");
             }
-            
+
             // Charger la vue de l'éditeur de niveaux
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/level-editor-view.fxml"));
             Parent editorRoot = loader.load();
-            
+
             // Créer une nouvelle scène pour l'éditeur
             Scene editorScene = new Scene(editorRoot, 1000, 900);
-            
+
             // Ajouter le CSS pour l'éditeur
             URL cssResource = getClass().getResource("/com/example/bomberman/view/level-editor-styles.css");
-            if (cssResource != null) {
-                editorScene.getStylesheets().add(cssResource.toExternalForm());
+                if (cssResource != null) {
+                    editorScene.getStylesheets().add(cssResource.toExternalForm());
             }
-            
+
             // Obtenir le stage actuel
             Stage stage = (Stage) levelEditorButton.getScene().getWindow();
             
             // Changer la scène
             stage.setScene(editorScene);
             stage.setTitle("Super Bomberman - Éditeur de niveaux");
-            
+
         } catch (IOException e) {
             e.printStackTrace();
             showErrorAlert("Erreur au chargement de l'éditeur", e.getMessage());
@@ -337,7 +337,7 @@ public class MainMenuController implements Initializable {
         soundManager.stopBackgroundMusic();
         
         // Fermer l'application
-        Platform.exit();
+            Platform.exit();
     }
 
     /**
@@ -350,7 +350,7 @@ public class MainMenuController implements Initializable {
         alert.setContentText(content);
         alert.showAndWait();
     }
-    
+
     /**
      * Affiche une alerte d'information
      */

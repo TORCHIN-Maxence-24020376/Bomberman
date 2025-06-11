@@ -32,7 +32,9 @@ public abstract class MovableEntity extends Entity {
      * @return true si l'entité peut se déplacer
      */
     public boolean canMove() {
-        long moveDelay = baseMoveDelay / speed;
+        // Calcul du délai avec bonus de vitesse de 10% par niveau
+        double speedFactor = 1.0 + (speed * 0.1); // 10% par niveau de vitesse
+        long moveDelay = (long)(baseMoveDelay / speedFactor);
         return System.currentTimeMillis() - lastMoveTime >= moveDelay;
     }
     
@@ -51,11 +53,28 @@ public abstract class MovableEntity extends Entity {
         int newX = x + dx;
         int newY = y + dy;
         
+        // Vérifier si la case est libre ou s'il y a une bombe
         if (board.isValidMove(newX, newY)) {
             x = newX;
             y = newY;
             lastMoveTime = System.currentTimeMillis();
             return true;
+        } else if (board.isBomb(newX, newY)) {
+            // Si c'est une bombe, essayer de la pousser
+            int bombNewX = newX + dx;
+            int bombNewY = newY + dy;
+            
+            // Vérifier si la nouvelle position de la bombe est valide
+            if (board.isValidMove(bombNewX, bombNewY)) {
+                // Déplacer la bombe
+                board.moveBomb(newX, newY, bombNewX, bombNewY);
+                
+                // Déplacer le joueur
+                x = newX;
+                y = newY;
+                lastMoveTime = System.currentTimeMillis();
+                return true;
+            }
         }
         
         return false;

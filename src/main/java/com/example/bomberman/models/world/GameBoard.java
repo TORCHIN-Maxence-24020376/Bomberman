@@ -1,6 +1,7 @@
 package com.example.bomberman.models.world;
 
 import com.example.bomberman.models.entities.PowerUp;
+import com.example.bomberman.service.SoundManager;
 import com.example.bomberman.utils.SpriteManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -153,6 +154,13 @@ public class GameBoard {
         return x >= 0 && x < width && y >= 0 && y < height &&
                 (board[y][x] == WALL || board[y][x] == DESTRUCTIBLE_WALL);
     }
+    
+    /**
+     * Vérifie s'il y a une bombe à cette position
+     */
+    public boolean isBomb(int x, int y) {
+        return x >= 0 && x < width && y >= 0 && y < height && board[y][x] == BOMB;
+    }
 
     /**
      * Place une bombe sur le plateau
@@ -169,6 +177,24 @@ public class GameBoard {
     public void removeBomb(int x, int y) {
         if (x >= 0 && x < width && y >= 0 && y < height && board[y][x] == BOMB) {
             board[y][x] = EMPTY;
+        }
+    }
+    
+    /**
+     * Déplace une bombe d'une position à une autre
+     */
+    public void moveBomb(int fromX, int fromY, int toX, int toY) {
+        if (fromX >= 0 && fromX < width && fromY >= 0 && fromY < height &&
+            toX >= 0 && toX < width && toY >= 0 && toY < height) {
+            
+            // Vérifier que la position source contient une bombe et que la destination est vide
+            if (board[fromY][fromX] == BOMB && board[toY][toX] == EMPTY) {
+                board[fromY][fromX] = EMPTY;
+                board[toY][toX] = BOMB;
+                
+                // Jouer un son de déplacement de bombe
+                SoundManager.getInstance().playSound("bomb_kick");
+            }
         }
     }
 
@@ -199,15 +225,13 @@ public class GameBoard {
      * Fait apparaître un power-up aléatoire
      */
     private void spawnRandomPowerUp(int x, int y) {
-        PowerUp.Type[] types = PowerUp.Type.values();
-
         // Probabilités différentes pour chaque type
         double random = Math.random();
         PowerUp.Type selectedType;
 
         if (random < 0.3) {
             selectedType = PowerUp.Type.BOMB_UP;
-        } else if (random < 0.55) {
+        } else if (random < 0.6) {
             selectedType = PowerUp.Type.FIRE_UP;
         } else if (random < 0.75) {
             selectedType = PowerUp.Type.SPEED_UP;

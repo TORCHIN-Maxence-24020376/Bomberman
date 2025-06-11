@@ -74,10 +74,19 @@ public class Game {
         pressedKeys.add(key);
 
         // Gestion des bombes avec contrôles fixes
-        if (key == P1_BOMB) {
+        if (key == P1_BOMB && player1.isAlive()) {
             placeBomb(player1);
-        } else if (key == P2_BOMB) {
+        } else if (key == P2_BOMB && player2.isAlive()) {
             placeBomb(player2);
+        }
+        
+        // Gestion des capacités spéciales
+        if (key == P1_SPECIAL && player1.isAlive()) {
+            // Capacité spéciale du joueur 1
+            useSpecialAbility(player1);
+        } else if (key == P2_SPECIAL && player2.isAlive()) {
+            // Capacité spéciale du joueur 2
+            useSpecialAbility(player2);
         }
     }
 
@@ -123,32 +132,44 @@ public class Game {
     }
 
     private void movePlayer(Player player, int dx, int dy) {
-        if (player.move(dx, dy, board)) {
+        if (player.moveToPosition(player.getX() + dx, player.getY() + dy, board)) {
             // Collecter power-up si disponible
-            try {
-                PowerUp powerUp = board.collectPowerUp(player.getX(), player.getY());
-                if (powerUp != null) {
-                    player.applyPowerUp(powerUp.getType());
-                    // Ajouter des points
-                    if (player == player1) {
-                        player1Score += 10;
-                    } else {
-                        player2Score += 10;
-                    }
+            PowerUp powerUp = board.collectPowerUp(player.getX(), player.getY());
+            if (powerUp != null) {
+                player.applyPowerUp(powerUp.getType());
+                // Ajouter des points
+                if (player == player1) {
+                    player1Score += 10;
+                } else {
+                    player2Score += 10;
                 }
-            } catch (Exception e) {
-                // Si PowerUp n'est pas encore implémenté, on ignore
             }
         }
     }
+    
+    /**
+     * Utilise la capacité spéciale du joueur
+     * Pour l'instant, c'est juste un espace réservé pour de futures fonctionnalités
+     */
+    private void useSpecialAbility(Player player) {
+        // Espace réservé pour de futures fonctionnalités
+        System.out.println("Joueur " + player.getPlayerId() + " utilise sa capacité spéciale");
+    }
 
     private void placeBomb(Player player) {
+        // Vérifier si le joueur peut placer une bombe
         if (player.canPlaceBomb()) {
-            Bomb bomb = new Bomb(player.getX(), player.getY(), player.getPlayerId());
+            // Vérifier s'il y a déjà une bombe à cette position
+            if (board.isBomb(player.getX(), player.getY())) {
+                return; // Ne pas placer de bombe si une existe déjà à cette position
+            }
+            
+            // Créer une nouvelle bombe avec la portée du joueur
+            Bomb bomb = new Bomb(player.getX(), player.getY(), player.getPlayerId(), player.getBombRange());
             bombs.add(bomb);
             board.placeBomb(player.getX(), player.getY());
             player.placeBomb();
-            bombsPlaced++; // ← AJOUTÉ : Compter les bombes placées
+            bombsPlaced++;
         }
     }
 
@@ -172,7 +193,7 @@ public class Game {
             if (bomb.hasExploded()) {
                 // Gérer l'explosion
                 int wallsDestroyedByThisBomb = handleExplosion(bomb);
-                wallsDestroyed += wallsDestroyedByThisBomb; // ← AJOUTÉ : Compter les murs détruits
+                wallsDestroyed += wallsDestroyedByThisBomb;
 
                 bombIterator.remove();
                 board.removeBomb(bomb.getX(), bomb.getY());
@@ -193,64 +214,66 @@ public class Game {
     private int handleExplosion(Bomb bomb) {
         int x = bomb.getX();
         int y = bomb.getY();
-        int wallsDestroyedByThisBomb = 0; // ← AJOUTÉ : Compter les murs détruits
+        int range = bomb.getRange();
+        int wallsDestroyedByThisBomb = 0;
 
         // Explosion au centre
-        if (board.isWall(x, y)) {
-            wallsDestroyedByThisBomb++;
-        }
         board.explode(x, y);
-
-        // Explosion dans les 4 directions
-        for (int i = 1; i <= bomb.getRange(); i++) {
-            // Droite
-            if (x + i < BOARD_WIDTH && board.canExplode(x + i, y)) {
+        
+        // Explosion dans les 4 directions, limitée par la portée et s'arrêtant aux murs
+        // Direction: droite
+        for (int i = 1; i <= range; i++) {
+            if (x + i < board.getWidth()) {
                 if (board.isWall(x + i, y)) {
-                    wallsDestroyedByThisBomb++;
+                    if (board.canExplode(x + i, y)) {
+                        board.explode(x + i, y);
+                        wallsDestroyedByThisBomb++;
+                    }
+                    break; // S'arrêter après avoir touché un mur
                 }
                 board.explode(x + i, y);
-                if (board.isWall(x + i, y)) break;
-            } else {
-                break;
             }
         }
         
-        for (int i = 1; i <= bomb.getRange(); i++) {
-            // Gauche
-            if (x - i >= 0 && board.canExplode(x - i, y)) {
+        // Direction: gauche
+        for (int i = 1; i <= range; i++) {
+            if (x - i >= 0) {
                 if (board.isWall(x - i, y)) {
-                    wallsDestroyedByThisBomb++;
+                    if (board.canExplode(x - i, y)) {
+                        board.explode(x - i, y);
+                        wallsDestroyedByThisBomb++;
+                    }
+                    break; // S'arrêter après avoir touché un mur
                 }
                 board.explode(x - i, y);
-                if (board.isWall(x - i, y)) break;
-            } else {
-                break;
             }
         }
         
-        for (int i = 1; i <= bomb.getRange(); i++) {
-            // Haut
-            if (y - i >= 0 && board.canExplode(x, y - i)) {
-                if (board.isWall(x, y - i)) {
-                    wallsDestroyedByThisBomb++;
-                }
-                board.explode(x, y - i);
-                if (board.isWall(x, y - i)) break;
-            } else {
-                break;
-            }
-        }
-        
-        for (int i = 1; i <= bomb.getRange(); i++) {
-            // Bas
-            if (y + i < BOARD_HEIGHT && board.canExplode(x, y + i)) {
+        // Direction: bas
+        for (int i = 1; i <= range; i++) {
+            if (y + i < board.getHeight()) {
                 if (board.isWall(x, y + i)) {
-                    wallsDestroyedByThisBomb++;
+                    if (board.canExplode(x, y + i)) {
+                        board.explode(x, y + i);
+                        wallsDestroyedByThisBomb++;
+                    }
+                    break; // S'arrêter après avoir touché un mur
                 }
                 board.explode(x, y + i);
-                if (board.isWall(x, y + i)) break;
-            } else {
-                break;
+            }
+        }
+        
+        // Direction: haut
+        for (int i = 1; i <= range; i++) {
+            if (y - i >= 0) {
+                if (board.isWall(x, y - i)) {
+                    if (board.canExplode(x, y - i)) {
+                        board.explode(x, y - i);
+                        wallsDestroyedByThisBomb++;
+                    }
+                    break; // S'arrêter après avoir touché un mur
+                }
+                board.explode(x, y - i);
             }
         }
 
@@ -261,23 +284,55 @@ public class Game {
             player2Score += wallsDestroyedByThisBomb * 5;
         }
 
-        // Vérifier si les joueurs sont touchés
-        if (board.isExplosion(player1.getX(), player1.getY())) {
-            player1.takeDamage();
-        }
-        if (board.isExplosion(player2.getX(), player2.getY())) {
-            player2.takeDamage();
-        }
+        // Vérifier si les joueurs sont touchés par l'explosion
+        checkPlayerDamage();
 
-        return wallsDestroyedByThisBomb; // ← AJOUTÉ : Retourner le nombre de murs détruits
+        return wallsDestroyedByThisBomb;
+    }
+    
+    /**
+     * Vérifie si les joueurs sont touchés par une explosion
+     */
+    private void checkPlayerDamage() {
+        // Vérifier le joueur 1
+        if (player1.isAlive() && !player1.isInvincible() && board.isExplosion(player1.getX(), player1.getY())) {
+            player1.takeDamage();
+            if (player1.isAlive()) {
+                // Le joueur a perdu une vie mais est toujours vivant
+                System.out.println("Joueur 1 touché ! Vies restantes: " + player1.getLives());
+            } else {
+                // Le joueur est mort
+                System.out.println("Joueur 1 éliminé !");
+                player2Score += 50; // Points bonus pour avoir éliminé l'adversaire
+            }
+        }
+        
+        // Vérifier le joueur 2
+        if (player2.isAlive() && !player2.isInvincible() && board.isExplosion(player2.getX(), player2.getY())) {
+            player2.takeDamage();
+            if (player2.isAlive()) {
+                // Le joueur a perdu une vie mais est toujours vivant
+                System.out.println("Joueur 2 touché ! Vies restantes: " + player2.getLives());
+            } else {
+                // Le joueur est mort
+                System.out.println("Joueur 2 éliminé !");
+                player1Score += 50; // Points bonus pour avoir éliminé l'adversaire
+            }
+        }
     }
 
     private void checkWinConditions() {
-        if (!player1.isAlive()) {
-            System.out.println("Joueur 2 gagne!");
-            gameRunning = false;
-        } else if (!player2.isAlive()) {
-            System.out.println("Joueur 1 gagne!");
+        if (!player1.isAlive() || !player2.isAlive()) {
+            System.out.println("Fin de partie !");
+            
+            if (!player1.isAlive() && !player2.isAlive()) {
+                System.out.println("Match nul !");
+            } else if (!player1.isAlive()) {
+                System.out.println("Joueur 2 gagne !");
+            } else {
+                System.out.println("Joueur 1 gagne !");
+            }
+            
             gameRunning = false;
         }
     }

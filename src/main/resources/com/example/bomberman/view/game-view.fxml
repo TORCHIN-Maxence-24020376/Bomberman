@@ -21,21 +21,33 @@
           <Label styleClass="player1-name" text="P1" />
         </HBox>
         
+        <!-- Vies Joueur 1 -->
+        <HBox styleClass="hud-item" alignment="CENTER">
+          <Label styleClass="hud-icon" text="❤️" />
+          <Label fx:id="player1LivesLabel" styleClass="hud-value" text="3" />
+        </HBox>
+        
         <!-- Bombes Joueur 1 -->
         <HBox styleClass="hud-item" alignment="CENTER">
           <Label styleClass="hud-icon" text="💣" />
-          <Label fx:id="player1BombsLabel" styleClass="hud-value" text="0" />
+          <Label fx:id="player1BombsLabel" styleClass="hud-value" text="1" />
         </HBox>
         
         <!-- Temps -->
         <Region HBox.hgrow="ALWAYS" />
-        <Label fx:id="timerLabel" styleClass="timer-display" text="1:41" />
+        <Label fx:id="timerLabel" styleClass="timer-display" text="0:00" />
         <Region HBox.hgrow="ALWAYS" />
         
         <!-- Bombes Joueur 2 -->
         <HBox styleClass="hud-item" alignment="CENTER">
           <Label styleClass="hud-icon" text="💣" />
-          <Label fx:id="player2BombsLabel" styleClass="hud-value" text="0" />
+          <Label fx:id="player2BombsLabel" styleClass="hud-value" text="1" />
+        </HBox>
+        
+        <!-- Vies Joueur 2 -->
+        <HBox styleClass="hud-item" alignment="CENTER">
+          <Label styleClass="hud-icon" text="❤️" />
+          <Label fx:id="player2LivesLabel" styleClass="hud-value" text="3" />
         </HBox>
         
         <!-- Joueur 2 -->
@@ -73,92 +85,5 @@
       </VBox>
     </StackPane>
   </center>
-
-  <!-- Panneau latéral avec informations détaillées -->
-  <right>
-    <VBox fx:id="gameInfoPanel" spacing="10" prefWidth="180" styleClass="info-panel">
-      <padding>
-        <Insets top="10" bottom="10" left="10" right="10" />
-      </padding>
-
-      <!-- Informations des joueurs -->
-      <VBox spacing="10">
-        <!-- Joueur 1 -->
-        <VBox spacing="5" styleClass="player-info player1-info">
-          <Label fx:id="player1InfoLabel" text="Joueur 1" styleClass="player-name player1-name" />
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Vies:" styleClass="game-info" />
-            <Label fx:id="player1LivesLabel" text="3" styleClass="hud-value" />
-          </HBox>
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Bombes:" styleClass="game-info" />
-            <Label fx:id="player1BombsInfoLabel" text="1" styleClass="hud-value" />
-          </HBox>
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Portée:" styleClass="game-info" />
-            <Label fx:id="player1RangeLabel" text="1" styleClass="hud-value" />
-          </HBox>
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Vitesse:" styleClass="game-info" />
-            <Label fx:id="player1SpeedLabel" text="1" styleClass="hud-value" />
-          </HBox>
-        </VBox>
-
-        <Separator />
-
-        <!-- Joueur 2 -->
-        <VBox spacing="5" styleClass="player-info player2-info">
-          <Label fx:id="player2InfoLabel" text="Joueur 2" styleClass="player-name player2-name" />
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Vies:" styleClass="game-info" />
-            <Label fx:id="player2LivesLabel" text="3" styleClass="hud-value" />
-          </HBox>
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Bombes:" styleClass="game-info" />
-            <Label fx:id="player2BombsInfoLabel" text="1" styleClass="hud-value" />
-          </HBox>
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Portée:" styleClass="game-info" />
-            <Label fx:id="player2RangeLabel" text="1" styleClass="hud-value" />
-          </HBox>
-          <HBox alignment="CENTER_LEFT" spacing="5">
-            <Label text="Vitesse:" styleClass="game-info" />
-            <Label fx:id="player2SpeedLabel" text="1" styleClass="hud-value" />
-          </HBox>
-        </VBox>
-      </VBox>
-
-      <Separator />
-
-      <!-- Légende des power-ups -->
-      <VBox spacing="5" styleClass="legend-section">
-        <Label text="Power-ups" styleClass="section-title" />
-        <HBox spacing="5">
-          <Label text="🧡" styleClass="power-up-icon" />
-          <Label text="Plus de bombes" styleClass="game-info" />
-        </HBox>
-        <HBox spacing="5">
-          <Label text="🔴" styleClass="power-up-icon" />
-          <Label text="Plus de portée" styleClass="game-info" />
-        </HBox>
-        <HBox spacing="5">
-          <Label text="🔵" styleClass="power-up-icon" />
-          <Label text="Plus de vitesse" styleClass="game-info" />
-        </HBox>
-        <HBox spacing="5">
-          <Label text="🟢" styleClass="power-up-icon" />
-          <Label text="Pousser bombes" styleClass="game-info" />
-        </HBox>
-      </VBox>
-
-      <Region VBox.vgrow="ALWAYS" />
-
-      <!-- Boutons de contrôle du jeu -->
-      <VBox spacing="10" alignment="CENTER">
-        <Button text="Pause" onAction="#togglePause" styleClass="control-button pause-button" />
-        <Button text="Quitter" onAction="#returnToMainMenu" styleClass="control-button quit-button" />
-      </VBox>
-    </VBox>
-  </right>
 
 </BorderPane>

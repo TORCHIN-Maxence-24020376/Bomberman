@@ -62,8 +62,6 @@ public class SoundManager {
             soundPaths.put("bomb_place", "/com/example/bomberman/sounds/bomb_place.mp3");
             soundPaths.put("bomb_explode", "/com/example/bomberman/sounds/bomb_explode.mp3");
             soundPaths.put("powerup_collect", "/com/example/bomberman/sounds/power_up_collect.mp3");
-            soundPaths.put("move", "/com/example/bomberman/sounds/bomb_place.mp3"); // Fallback pour move.wav
-            soundPaths.put("player_death", "/com/example/bomberman/sounds/bomb_explode.mp3"); // Fallback pour player_death.wav
             
             // Essayer de charger avec ResourceManager
             String bombPlacePath = resourceManager.loadSound("bomb_place");

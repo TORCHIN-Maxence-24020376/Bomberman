@@ -1,5 +1,6 @@
 package com.example.bomberman.models.entities;
 
+import com.example.bomberman.service.SoundManager;
 import com.example.bomberman.utils.SpriteManager;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -16,7 +17,19 @@ public class Bomb extends StaticEntity {
     public Bomb(int x, int y, int playerId) {
         super(x, y);
         this.playerId = playerId;
-        this.range = 2; // Portée par défaut
+        this.range = 1; // Portée par défaut = 1
+        this.exploded = false;
+        this.spriteManager = SpriteManager.getInstance();
+        this.bombSprite = spriteManager.loadSprite("bomb");
+    }
+
+    /**
+     * Constructeur avec portée spécifiée
+     */
+    public Bomb(int x, int y, int playerId, int range) {
+        super(x, y);
+        this.playerId = playerId;
+        this.range = range;
         this.exploded = false;
         this.spriteManager = SpriteManager.getInstance();
         this.bombSprite = spriteManager.loadSprite("bomb");
@@ -26,6 +39,7 @@ public class Bomb extends StaticEntity {
     public void update() {
         if (!exploded && getElapsedTime() >= EXPLOSION_DELAY) {
             exploded = true;
+            SoundManager.getInstance().playSound("bomb_explode");
             deactivate();
         }
     }
@@ -67,6 +81,14 @@ public class Bomb extends StaticEntity {
                     y * tileSize + offset - 10
             );
         }
+    }
+
+    /**
+     * Déplace la bombe à une nouvelle position
+     */
+    public void moveTo(int newX, int newY) {
+        this.x = newX;
+        this.y = newY;
     }
 
     public boolean hasExploded() {
