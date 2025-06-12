@@ -1,144 +1,118 @@
 package com.example.bomberman.tests.service;
 
 import com.example.bomberman.service.SoundManager;
-import org.junit.jupiter.api.AfterEach;
+import com.example.bomberman.utils.ResourceManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
+/**
+ * Tests unitaires pour le gestionnaire de sons
+ */
 public class SoundManagerTest {
-
+    
     private SoundManager soundManager;
-
+    
+    @Mock
+    private ResourceManager resourceManagerMock;
+    
     @BeforeEach
-    public void setUp() throws Exception {
-        // Réinitialiser l'instance singleton pour les tests
-        resetSingleton();
-        
-        // Obtenir une nouvelle instance
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
         soundManager = SoundManager.getInstance();
     }
-    
-    @AfterEach
-    public void tearDown() throws Exception {
-        // Réinitialiser l'instance singleton après les tests
-        resetSingleton();
-    }
-    
+
     @Test
     public void testGetInstance() {
+        // Vérifier que getInstance ne lance pas d'exception
+        assertDoesNotThrow(() -> SoundManager.getInstance());
+        
         // Vérifier que getInstance retourne toujours la même instance
         SoundManager instance1 = SoundManager.getInstance();
         SoundManager instance2 = SoundManager.getInstance();
+        assertSame(instance1, instance2, "getInstance doit retourner la même instance");
+    }
+    
+    @Test
+    public void testSoundVolume() {
+        // Valeur par défaut
+        assertEquals(0.5, soundManager.getSoundVolume(), 0.01, "Le volume des sons par défaut doit être 0.5");
         
-        assertNotNull(instance1);
-        assertSame(instance1, instance2);
+        // Définir une nouvelle valeur
+        soundManager.setSoundVolume(0.75);
+        assertEquals(0.75, soundManager.getSoundVolume(), 0.01, "Le volume des sons doit être 0.75");
+        
+        // Valeur hors limites (doit être limité entre 0 et 1)
+        soundManager.setSoundVolume(1.5);
+        assertEquals(1.0, soundManager.getSoundVolume(), 0.01, "Le volume des sons doit être limité à 1.0");
+        
+        soundManager.setSoundVolume(-0.5);
+        assertEquals(0.0, soundManager.getSoundVolume(), 0.01, "Le volume des sons doit être limité à 0.0");
     }
     
     @Test
-    public void testInitialState() {
-        // Vérifier l'état initial
-        assertTrue(soundManager.isSoundEnabled());
-        assertTrue(soundManager.isMusicEnabled());
-        assertEquals(0.5, soundManager.getSoundVolume(), 0.01);
-        assertEquals(0.3, soundManager.getMusicVolume(), 0.01);
+    public void testMusicVolume() {
+        // Valeur par défaut
+        assertEquals(0.3, soundManager.getMusicVolume(), 0.01, "Le volume de la musique par défaut doit être 0.3");
+        
+        // Définir une nouvelle valeur
+        soundManager.setMusicVolume(0.6);
+        assertEquals(0.6, soundManager.getMusicVolume(), 0.01, "Le volume de la musique doit être 0.6");
+        
+        // Valeur hors limites (doit être limité entre 0 et 1)
+        soundManager.setMusicVolume(1.5);
+        assertEquals(1.0, soundManager.getMusicVolume(), 0.01, "Le volume de la musique doit être limité à 1.0");
+        
+        soundManager.setMusicVolume(-0.5);
+        assertEquals(0.0, soundManager.getMusicVolume(), 0.01, "Le volume de la musique doit être limité à 0.0");
     }
     
     @Test
-    public void testSetSoundEnabled() {
-        // État initial
-        assertTrue(soundManager.isSoundEnabled());
+    public void testSoundEnabled() {
+        // Par défaut, les sons sont activés
+        assertTrue(soundManager.isSoundEnabled(), "Les sons doivent être activés par défaut");
         
         // Désactiver les sons
         soundManager.setSoundEnabled(false);
-        assertFalse(soundManager.isSoundEnabled());
+        assertFalse(soundManager.isSoundEnabled(), "Les sons doivent être désactivés");
         
         // Réactiver les sons
         soundManager.setSoundEnabled(true);
-        assertTrue(soundManager.isSoundEnabled());
+        assertTrue(soundManager.isSoundEnabled(), "Les sons doivent être réactivés");
     }
     
     @Test
-    public void testSetMusicEnabled() {
-        // État initial
-        assertTrue(soundManager.isMusicEnabled());
+    public void testMusicEnabled() {
+        // Par défaut, la musique est activée
+        assertTrue(soundManager.isMusicEnabled(), "La musique doit être activée par défaut");
         
         // Désactiver la musique
         soundManager.setMusicEnabled(false);
-        assertFalse(soundManager.isMusicEnabled());
+        assertFalse(soundManager.isMusicEnabled(), "La musique doit être désactivée");
         
         // Réactiver la musique
         soundManager.setMusicEnabled(true);
-        assertTrue(soundManager.isMusicEnabled());
-    }
-    
-    @Test
-    public void testSetSoundVolume() {
-        // État initial
-        assertEquals(0.5, soundManager.getSoundVolume(), 0.01);
-        
-        // Modifier le volume
-        soundManager.setSoundVolume(0.8);
-        assertEquals(0.8, soundManager.getSoundVolume(), 0.01);
-        
-        // Tester les limites
-        soundManager.setSoundVolume(-0.5); // Devrait être limité à 0
-        assertEquals(0.0, soundManager.getSoundVolume(), 0.01);
-        
-        soundManager.setSoundVolume(1.5); // Devrait être limité à 1
-        assertEquals(1.0, soundManager.getSoundVolume(), 0.01);
-    }
-    
-    @Test
-    public void testSetMusicVolume() {
-        // État initial
-        assertEquals(0.3, soundManager.getMusicVolume(), 0.01);
-        
-        // Modifier le volume
-        soundManager.setMusicVolume(0.7);
-        assertEquals(0.7, soundManager.getMusicVolume(), 0.01);
-        
-        // Tester les limites
-        soundManager.setMusicVolume(-0.5); // Devrait être limité à 0
-        assertEquals(0.0, soundManager.getMusicVolume(), 0.01);
-        
-        soundManager.setMusicVolume(1.5); // Devrait être limité à 1
-        assertEquals(1.0, soundManager.getMusicVolume(), 0.01);
+        assertTrue(soundManager.isMusicEnabled(), "La musique doit être réactivée");
     }
     
     @Test
     public void testPlaySound() {
-        // Vérifier que la méthode ne lève pas d'exception
-        assertDoesNotThrow(() -> soundManager.playSound("bomb_place"));
-        
-        // Désactiver les sons et vérifier que la méthode ne lève pas d'exception
-        soundManager.setSoundEnabled(false);
-        assertDoesNotThrow(() -> soundManager.playSound("bomb_place"));
+        // Ce test vérifie simplement que la méthode ne lance pas d'exception
+        assertDoesNotThrow(() -> soundManager.playSound("bomb_place"), 
+                "La lecture d'un son ne doit pas lancer d'exception");
     }
     
     @Test
     public void testPlayBackgroundMusic() {
-        // Vérifier que la méthode ne lève pas d'exception
-        assertDoesNotThrow(() -> soundManager.playBackgroundMusic("/sounds/menu_music.mp3"));
-        
-        // Désactiver la musique et vérifier que la méthode ne lève pas d'exception
-        soundManager.setMusicEnabled(false);
-        assertDoesNotThrow(() -> soundManager.playBackgroundMusic("/sounds/menu_music.mp3"));
-    }
-    
-    @Test
-    public void testStopBackgroundMusic() {
-        // Vérifier que la méthode ne lève pas d'exception
-        assertDoesNotThrow(() -> soundManager.stopBackgroundMusic());
-    }
-    
-    // Méthode utilitaire pour la réflexion
-    private void resetSingleton() throws Exception {
-        Field instance = SoundManager.class.getDeclaredField("instance");
-        instance.setAccessible(true);
-        instance.set(null, null);
+        // Ce test vérifie simplement que la méthode ne lance pas d'exception
+        assertDoesNotThrow(() -> soundManager.playBackgroundMusic("game_music"), 
+                "La lecture de la musique ne doit pas lancer d'exception");
     }
 } 

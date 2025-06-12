@@ -1,11 +1,14 @@
 package com.example.bomberman.utils;
 
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +32,45 @@ public class FileDialogManager {
     }
     
     /**
+     * Applique les styles aux boîtes de dialogue
+     * @param dialog Le dialogue à styliser
+     * @param dialogType Le type de dialogue ("save", "load" ou "new")
+     */
+    private static void applyDialogStyles(Dialog<?> dialog, String dialogType) {
+        // Appliquer la classe CSS spécifique
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStyleClass().add(dialogType + "-dialog");
+        
+        // Charger le CSS de l'éditeur de niveau
+        Scene scene = dialogPane.getScene();
+        if (scene != null) {
+            try {
+                String cssPath = FileDialogManager.class.getResource("/com/example/bomberman/view/level-editor-styles.css").toExternalForm();
+                scene.getStylesheets().add(cssPath);
+            } catch (Exception e) {
+                System.err.println("Erreur lors du chargement du CSS: " + e.getMessage());
+            }
+        }
+        
+        // Appliquer des styles spécifiques aux boutons
+        Button okButton = (Button) dialogPane.lookupButton(
+                dialogPane.getButtonTypes().stream()
+                        .filter(type -> type.getButtonData().isDefaultButton())
+                        .findFirst()
+                        .orElse(null)
+        );
+        
+        if (okButton != null) {
+            okButton.getStyleClass().add("ok-button");
+        }
+        
+        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        if (cancelButton != null) {
+            cancelButton.getStyleClass().add("cancel-button");
+        }
+    }
+    
+    /**
      * Affiche un dialogue de sauvegarde personnalisé
      * @param owner Fenêtre parente
      * @return Le chemin du fichier sélectionné ou null si annulé
@@ -41,6 +83,7 @@ public class FileDialogManager {
         dialog.setTitle("Sauvegarder le niveau");
         dialog.setHeaderText("Entrez un nom pour votre niveau");
         dialog.initOwner(owner);
+        dialog.initModality(Modality.APPLICATION_MODAL);
         
         // Boutons
         ButtonType saveButtonType = new ButtonType("Sauvegarder", ButtonBar.ButtonData.OK_DONE);
@@ -50,26 +93,36 @@ public class FileDialogManager {
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
+        grid.setPadding(new Insets(20, 20, 10, 20));
         
         TextField fileName = new TextField();
         fileName.setPromptText("nom_du_niveau");
         
-        grid.add(new Label("Nom du niveau:"), 0, 0);
+        Label nameLabel = new Label("Nom du niveau:");
+        nameLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+        
+        grid.add(nameLabel, 0, 0);
         grid.add(fileName, 1, 0);
         
         // Liste des fichiers existants
         ListView<String> fileList = new ListView<>();
         loadExistingFiles(fileList);
         
-        VBox content = new VBox(10);
+        Label existingLabel = new Label("Niveaux existants:");
+        existingLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+        
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(10, 0, 10, 0));
         content.getChildren().addAll(
             grid,
-            new Label("Niveaux existants:"),
+            existingLabel,
             fileList
         );
         
         dialog.getDialogPane().setContent(content);
+        
+        // Appliquer les styles
+        applyDialogStyles(dialog, "save");
         
         // Sélection d'un fichier existant
         fileList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -114,6 +167,7 @@ public class FileDialogManager {
         dialog.setTitle("Charger un niveau");
         dialog.setHeaderText("Sélectionnez un niveau à charger");
         dialog.initOwner(owner);
+        dialog.initModality(Modality.APPLICATION_MODAL);
         
         // Boutons
         ButtonType loadButtonType = new ButtonType("Charger", ButtonBar.ButtonData.OK_DONE);
@@ -123,13 +177,20 @@ public class FileDialogManager {
         ListView<String> fileList = new ListView<>();
         loadExistingFiles(fileList);
         
-        VBox content = new VBox(10);
+        Label existingLabel = new Label("Niveaux disponibles:");
+        existingLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+        
+        VBox content = new VBox(15);
+        content.setPadding(new Insets(10, 0, 10, 0));
         content.getChildren().addAll(
-            new Label("Niveaux disponibles:"),
+            existingLabel,
             fileList
         );
         
         dialog.getDialogPane().setContent(content);
+        
+        // Appliquer les styles
+        applyDialogStyles(dialog, "load");
         
         // Activer/désactiver le bouton de chargement selon qu'un fichier est sélectionné ou non
         Button loadButton = (Button) dialog.getDialogPane().lookupButton(loadButtonType);
@@ -192,7 +253,7 @@ public class FileDialogManager {
                         setText(null);
                         setStyle("");
                     } else if (item.equals("autosave.level")) {
-                        setText(item);
+                        setText("Dernière session (autosave.level)");
                         setStyle("-fx-font-weight: bold;");
                     } else {
                         setText(item);

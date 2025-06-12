@@ -23,10 +23,9 @@ public class Enemy extends MovableEntity {
      * Constructeur
      * @param x Position X initiale
      * @param y Position Y initiale
-     * @param speed Vitesse initiale
      */
-    public Enemy(int x, int y, int speed) {
-        super(x, y, speed);
+    public Enemy(int x, int y) {
+        super(x, y);
         this.color = Color.PURPLE;
         this.random = new Random();
         this.currentDirection = random.nextInt(4);

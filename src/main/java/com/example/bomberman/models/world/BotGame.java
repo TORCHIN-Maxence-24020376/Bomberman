@@ -2,8 +2,12 @@ package com.example.bomberman.models.world;
 
 import com.example.bomberman.models.entities.BotPlayer;
 import com.example.bomberman.models.entities.Player;
-import com.example.bomberman.models.entities.PlayerProfile;
 import javafx.scene.paint.Color;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * Classe représentant une partie contre un bot
@@ -38,13 +42,12 @@ public class BotGame extends Game {
         // Créer le bot à la position du joueur 2
         botPlayer = new BotPlayer(boardWidth - 2, boardHeight - 2, Color.RED, 2, difficultyLevel);
         
-        // Remplacer le joueur 2 par le bot (on ne peut pas utiliser setPlayer2 directement)
+        // Remplacer le joueur 2 par le bot
         replacePlayer2WithBot();
     }
     
     /**
      * Remplace le joueur 2 par le bot
-     * Cette méthode contourne la limitation d'accès à player2 dans Game
      */
     private void replacePlayer2WithBot() {
         // On doit recharger le niveau pour remplacer le joueur 2
@@ -65,8 +68,7 @@ public class BotGame extends Game {
         // qui permet de remplacer les joueurs
         int[][] currentLevel = extractLevelData(getBoard());
         if (currentLevel != null) {
-            // Créer un nouveau niveau avec les mêmes données
-            // mais en remplaçant le joueur 2 par le bot
+            // Créer un niveau temporaire avec les mêmes données
             String tempLevelPath = createTempLevelWithBot(currentLevel, player1X, player1Y, player2X, player2Y);
             
             // Charger ce niveau temporaire
@@ -80,7 +82,7 @@ public class BotGame extends Game {
                 // Maintenant on doit remplacer manuellement le joueur 2 par le bot
                 // en utilisant la réflexion puisqu'on ne peut pas accéder directement à player2
                 try {
-                    java.lang.reflect.Field player2Field = Game.class.getDeclaredField("player2");
+                    Field player2Field = Game.class.getDeclaredField("player2");
                     player2Field.setAccessible(true);
                     player2Field.set(this, botPlayer);
                 } catch (Exception e) {
@@ -128,10 +130,10 @@ public class BotGame extends Game {
         try {
             // Créer un fichier temporaire
             String tempFile = "levels/temp_bot_level.level";
-            java.io.File file = new java.io.File(tempFile);
+            File file = new File(tempFile);
             file.getParentFile().mkdirs();
             
-            try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
+            try (PrintWriter writer = new PrintWriter(file)) {
                 // Écrire les dimensions
                 writer.println(levelData[0].length + "," + levelData.length);
                 
@@ -182,20 +184,23 @@ public class BotGame extends Game {
     
     /**
      * Permet au bot de placer une bombe
-     * Cette méthode contourne la limitation d'accès à placeBomb dans Game
      */
     private void botPlaceBomb() {
         if (botPlayer != null && botPlayer.canPlaceBomb()) {
             // On doit utiliser la réflexion pour accéder à la méthode placeBomb
             try {
-                java.lang.reflect.Method placeBombMethod = Game.class.getDeclaredMethod("placeBomb", Player.class);
+                Method placeBombMethod = Game.class.getDeclaredMethod("placeBomb", Player.class);
                 placeBombMethod.setAccessible(true);
                 placeBombMethod.invoke(this, botPlayer);
             } catch (Exception e) {
                 System.err.println("Impossible de faire placer une bombe au bot: " + e.getMessage());
                 
-                // Alternative: implémenter directement la logique de placeBomb ici
-                // (copier le code de Game.placeBomb)
+                // Alternative: si le bot peut placer une bombe
+                if (botPlayer.canPlaceBomb()) {
+                    botPlayer.placeBomb();
+                    // Ajouter une bombe à la position du bot
+                    getBoard().placeBomb(botPlayer.getX(), botPlayer.getY());
+                }
             }
         }
     }
@@ -239,9 +244,15 @@ public class BotGame extends Game {
      * Définit le profil du joueur humain
      * @param profile Le profil du joueur
      */
-    public void setHumanPlayerProfile(PlayerProfile profile) {
-        if (humanPlayer != null) {
-            humanPlayer.setProfile(profile);
+    public void setHumanPlayerProfile(Object profile) {
+        if (humanPlayer != null && profile != null) {
+            // Utiliser setProfile si disponible
+            try {
+                Method setProfileMethod = Player.class.getMethod("setProfile", Object.class);
+                setProfileMethod.invoke(humanPlayer, profile);
+            } catch (Exception e) {
+                System.err.println("Méthode setProfile non disponible: " + e.getMessage());
+            }
         }
     }
 } 

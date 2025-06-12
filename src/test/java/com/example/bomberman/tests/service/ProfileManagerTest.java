@@ -1,7 +1,5 @@
 package com.example.bomberman.tests.service;
 
-import com.example.bomberman.models.entities.PlayerProfile;
-import com.example.bomberman.service.ProfileManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

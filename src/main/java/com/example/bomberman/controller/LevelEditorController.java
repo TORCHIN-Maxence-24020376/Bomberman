@@ -1,15 +1,27 @@
 package com.example.bomberman.controller;
 
+import com.example.bomberman.Main;
+import com.example.bomberman.service.SoundManager;
+import com.example.bomberman.service.UserPreferences;
+import com.example.bomberman.utils.FileDialogManager;
+import com.example.bomberman.utils.ResourceManager;
+import com.example.bomberman.utils.SpriteManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -17,9 +29,8 @@ import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
-
-import com.example.bomberman.utils.FileDialogManager;
 
 /**
  * Contrôleur pour l'éditeur de niveaux
@@ -71,10 +82,41 @@ public class LevelEditorController implements Initializable {
 
     // Curseurs personnalisés
     private Map<Integer, Cursor> customCursors = new HashMap<>();
+    
+    // Gestionnaires
+    private SpriteManager spriteManager;
+    private ResourceManager resourceManager;
+    private UserPreferences userPreferences;
+    private SoundManager soundManager;
+    
+    // Sprites
+    private Image tileSprite;
+    private Image wallSprite;
+    private Image breakableWallSprite;
+    private Image player1Sprite;
+    private Image player2Sprite;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = editorCanvas.getGraphicsContext2D();
+        
+        // Initialiser les gestionnaires
+        spriteManager = SpriteManager.getInstance();
+        resourceManager = ResourceManager.getInstance();
+        userPreferences = UserPreferences.getInstance();
+        soundManager = SoundManager.getInstance();
+        
+        // Appliquer les préférences utilisateur
+        userPreferences.applyPreferences();
+        
+        // Changer la musique pour celle de l'éditeur si la musique est activée
+        if (userPreferences.isMusicEnabled()) {
+            soundManager.stopBackgroundMusic();
+            soundManager.playBackgroundMusic("editor_music");
+        }
+        
+        // Charger les sprites selon le thème actuel
+        loadSprites();
         
         setupControls();
         
@@ -86,7 +128,67 @@ public class LevelEditorController implements Initializable {
         initializeCustomCursors();
         render();
         
+        // Appliquer le CSS spécifique à l'éditeur de niveau
+        applyLevelEditorCSS();
+        
         System.out.println("Éditeur de niveaux lancé avec succès !");
+    }
+    
+    /**
+     * Applique le CSS spécifique à l'éditeur de niveau
+     */
+    private void applyLevelEditorCSS() {
+        Scene scene = editorCanvas.getScene();
+        if (scene != null) {
+            // Retirer les styles existants
+            scene.getStylesheets().clear();
+            
+            // Ajouter le style spécifique à l'éditeur de niveau
+            String cssPath = getClass().getResource("/com/example/bomberman/view/level-editor-styles.css").toExternalForm();
+            scene.getStylesheets().add(cssPath);
+            System.out.println("CSS spécifique appliqué à l'éditeur de niveau: " + cssPath);
+        } else {
+            // La scène n'est pas encore prête, on doit attendre qu'elle soit disponible
+            Platform.runLater(() -> {
+                Scene newScene = editorCanvas.getScene();
+                if (newScene != null) {
+                    newScene.getStylesheets().clear();
+                    String cssPath = getClass().getResource("/com/example/bomberman/view/level-editor-styles.css").toExternalForm();
+                    newScene.getStylesheets().add(cssPath);
+                    System.out.println("CSS spécifique appliqué à l'éditeur de niveau (différé): " + cssPath);
+                }
+            });
+        }
+    }
+    
+    /**
+     * Charge les sprites selon le thème actuel
+     */
+    private void loadSprites() {
+        tileSprite = spriteManager.loadSprite("tile");
+        wallSprite = spriteManager.loadSprite("unbreakable_wall");
+        breakableWallSprite = spriteManager.loadSprite("breakable_wall");
+        
+        // Pour les joueurs, on utilise des sprites génériques pour l'instant
+        player1Sprite = createColoredPlayerSprite(Color.BLUE);
+        player2Sprite = createColoredPlayerSprite(Color.RED);
+    }
+    
+    /**
+     * Crée un sprite de joueur coloré
+     */
+    private Image createColoredPlayerSprite(Color color) {
+        Canvas canvas = new Canvas(32, 32);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        
+        // Dessiner un cercle coloré
+        gc.setFill(color);
+        gc.fillOval(4, 4, 24, 24);
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        gc.strokeOval(4, 4, 24, 24);
+        
+        return canvas.snapshot(null, null);
     }
 
     /**
@@ -119,10 +221,28 @@ public class LevelEditorController implements Initializable {
         player1SpawnTool.setUserData(3);
         player2SpawnTool.setUserData(4);
 
+        // S'assurer que le ToggleGroup est correctement configuré
+        if (toolGroup == null) {
+            toolGroup = new ToggleGroup();
+            emptyTool.setToggleGroup(toolGroup);
+            wallTool.setToggleGroup(toolGroup);
+            destructibleWallTool.setToggleGroup(toolGroup);
+            player1SpawnTool.setToggleGroup(toolGroup);
+            player2SpawnTool.setToggleGroup(toolGroup);
+        }
+
         toolGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
             if (newToggle != null) {
                 selectedTool = (Integer) newToggle.getUserData();
                 updateCursor();
+            } else {
+                // Si tous les toggles sont désélectionnés, forcer la sélection du dernier outil utilisé
+                if (oldToggle != null) {
+                    oldToggle.setSelected(true);
+                } else {
+                    // Par défaut, sélectionner l'outil vide
+                    emptyTool.setSelected(true);
+                }
             }
         });
 
@@ -130,18 +250,20 @@ public class LevelEditorController implements Initializable {
         emptyTool.setSelected(true);
         updateCursor();
 
-        // Configuration des boutons
+        // Configuration des boutons d'action
         returnButton.setOnAction(e -> returnToMainMenu());
         newButton.setOnAction(e -> newLevel());
         loadButton.setOnAction(e -> loadLevel());
         saveButton.setOnAction(e -> saveLevel());
         testButton.setOnAction(e -> testLevel());
         randomWallsButton.setOnAction(e -> placeRandomDestructibleWalls());
-
+        
         // Événements de souris sur le canvas
-        editorCanvas.setOnMousePressed(this::handleMousePressed);
-        editorCanvas.setOnMouseClicked(this::handleMouseClick);
-        editorCanvas.setOnMouseDragged(this::handleMouseDrag);
+        editorCanvas.setOnMousePressed(this::handleCanvasMousePressed);
+        editorCanvas.setOnMouseDragged(e -> handleMouseDrag(e));
+        
+        // Empêcher le clic droit standard
+        editorCanvas.setOnContextMenuRequested(e -> e.consume());
 
         updateDimensionsLabel();
     }
@@ -150,10 +272,32 @@ public class LevelEditorController implements Initializable {
      * Initialise les curseurs personnalisés
      */
     private void initializeCustomCursors() {
-        // Pour l'instant, nous utilisons des curseurs par défaut
-        // Les curseurs personnalisés seront ajoutés ultérieurement
+        try {
+            // Créer des curseurs personnalisés à partir des sprites
+            if (tileSprite != null) {
+                customCursors.put(EMPTY, new ImageCursor(tileSprite, tileSprite.getWidth() / 2, tileSprite.getHeight() / 2));
+            }
+            
+            if (wallSprite != null) {
+                customCursors.put(WALL, new ImageCursor(wallSprite, wallSprite.getWidth() / 2, wallSprite.getHeight() / 2));
+            }
+            
+            if (breakableWallSprite != null) {
+                customCursors.put(DESTRUCTIBLE_WALL, new ImageCursor(breakableWallSprite, breakableWallSprite.getWidth() / 2, breakableWallSprite.getHeight() / 2));
+            }
+            
+            if (player1Sprite != null) {
+                customCursors.put(3, new ImageCursor(player1Sprite, player1Sprite.getWidth() / 2, player1Sprite.getHeight() / 2));
+            }
+            
+            if (player2Sprite != null) {
+                customCursors.put(4, new ImageCursor(player2Sprite, player2Sprite.getWidth() / 2, player2Sprite.getHeight() / 2));
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la création des curseurs personnalisés: " + e.getMessage());
+        }
         
-        // Si aucun curseur personnalisé n'est créé, appliquer le curseur par défaut
+        // Appliquer le curseur initial
         updateCursor();
     }
     
@@ -323,23 +467,21 @@ public class LevelEditorController implements Initializable {
     /**
      * Gère les événements de souris (détecte le clic droit)
      */
-    private void handleMousePressed(MouseEvent event) {
-        if (event.isSecondaryButtonDown()) {
-            // Fermer le menu précédent s'il existe
-            if (activeContextMenu != null) {
-                activeContextMenu.hide();
+    @FXML
+    private void handleCanvasMousePressed(MouseEvent event) {
+        if (event.isPrimaryButtonDown()) {
+            // Trouver la case sous le curseur
+            int tileX = (int) (event.getX() / TILE_SIZE);
+            int tileY = (int) (event.getY() / TILE_SIZE);
+            
+            // S'assurer que le clic est dans les limites
+            if (tileX >= 0 && tileX < levelWidth && tileY >= 0 && tileY < levelHeight) {
+                // Appliquer l'outil sélectionné
+                paintTile(tileX, tileY);
             }
-            
-            // Clic droit - afficher menu contextuel
+        } else if (event.isSecondaryButtonDown()) {
+            // Afficher le menu contextuel pour sélectionner un outil
             showContextMenu(event);
-            
-            // Consommer l'événement pour éviter d'autres actions
-            event.consume();
-        } else if (event.isPrimaryButtonDown()) {
-            // Clic gauche - placer une tuile immédiatement
-            int x = (int) (event.getX() / TILE_SIZE);
-            int y = (int) (event.getY() / TILE_SIZE);
-            paintTile(x, y);
         }
     }
 
@@ -395,51 +537,101 @@ public class LevelEditorController implements Initializable {
      * Dessine le niveau
      */
     public void render() {
+        if (gc == null) return;
+
+        // Effacer le canvas
         gc.clearRect(0, 0, editorCanvas.getWidth(), editorCanvas.getHeight());
 
+        // Dessiner chaque case
         for (int y = 0; y < levelHeight; y++) {
             for (int x = 0; x < levelWidth; x++) {
+                int cellType = levelData[y][x];
                 int cellX = x * TILE_SIZE;
                 int cellY = y * TILE_SIZE;
 
-                // Couleur de fond
-                switch (levelData[y][x]) {
-                    case EMPTY:
-                        gc.setFill(Color.LIGHTGREEN);
-                        break;
-                    case WALL:
-                        gc.setFill(Color.DARKGRAY);
-                        break;
-                    case DESTRUCTIBLE_WALL:
-                        gc.setFill(Color.BROWN);
-                        break;
+                // Dessiner le fond (tuile vide)
+                if (tileSprite != null) {
+                    gc.drawImage(tileSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+                } else {
+                    // Fallback: Damier
+                    gc.setFill((x + y) % 2 == 0 ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker());
+                    gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
                 }
 
-                gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+                // Dessiner le contenu de la case selon son type
+                switch (cellType) {
+                    case WALL:
+                        if (wallSprite != null) {
+                            gc.drawImage(wallSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        } else {
+                            // Fallback: Mur indestructible
+                            gc.setFill(Color.DARKGRAY);
+                            gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        }
+                        break;
 
-                // Grille
-                gc.setStroke(Color.BLACK);
-                gc.setLineWidth(1);
-                gc.strokeRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
-
-                // Marqueurs spéciaux pour les murs fixes
-                if (x % 2 == 0 && y % 2 == 0 && levelData[y][x] == WALL) {
-                    gc.setFill(Color.BLACK);
-                    gc.fillRect(cellX + TILE_SIZE/4, cellY + TILE_SIZE/4, TILE_SIZE/2, TILE_SIZE/2);
+                    case DESTRUCTIBLE_WALL:
+                        if (breakableWallSprite != null) {
+                            gc.drawImage(breakableWallSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        } else {
+                            // Fallback: Mur destructible
+                            gc.setFill(Color.BROWN);
+                            gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+                        }
+                        break;
                 }
             }
         }
 
         // Dessiner les positions des joueurs
-        gc.setFill(Color.BLUE);
-        gc.fillOval(player1X * TILE_SIZE + 5, player1Y * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-        gc.setFill(Color.WHITE);
-        gc.fillText("1", player1X * TILE_SIZE + TILE_SIZE/2 - 3, player1Y * TILE_SIZE + TILE_SIZE/2 + 3);
+        drawPlayerPosition(player1X, player1Y, Color.BLUE, "1");
+        drawPlayerPosition(player2X, player2Y, Color.RED, "2");
 
-        gc.setFill(Color.RED);
-        gc.fillOval(player2X * TILE_SIZE + 5, player2Y * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
-        gc.setFill(Color.WHITE);
-        gc.fillText("2", player2X * TILE_SIZE + TILE_SIZE/2 - 3, player2Y * TILE_SIZE + TILE_SIZE/2 + 3);
+        // Dessiner la grille
+        gc.setStroke(Color.DARKGRAY);
+        gc.setLineWidth(0.5);
+        for (int x = 0; x <= levelWidth; x++) {
+            gc.strokeLine(x * TILE_SIZE, 0, x * TILE_SIZE, levelHeight * TILE_SIZE);
+        }
+        for (int y = 0; y <= levelHeight; y++) {
+            gc.strokeLine(0, y * TILE_SIZE, levelWidth * TILE_SIZE, y * TILE_SIZE);
+        }
+    }
+
+    /**
+     * Dessine la position d'un joueur
+     */
+    private void drawPlayerPosition(int x, int y, Color color, String playerNumber) {
+        int cellX = x * TILE_SIZE;
+        int cellY = y * TILE_SIZE;
+
+        // D'abord dessiner la tuile de fond
+        if (tileSprite != null) {
+            gc.drawImage(tileSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+        } else {
+            // Fallback: Damier
+            gc.setFill((x + y) % 2 == 0 ? Color.LIGHTGREEN : Color.LIGHTGREEN.darker());
+            gc.fillRect(cellX, cellY, TILE_SIZE, TILE_SIZE);
+        }
+
+        // Utiliser le sprite du joueur s'il est disponible
+        Image playerSprite = playerNumber.equals("1") ? player1Sprite : player2Sprite;
+        
+        if (playerSprite != null) {
+            gc.drawImage(playerSprite, cellX, cellY, TILE_SIZE, TILE_SIZE);
+        } else {
+            // Fallback: Dessin simple
+            gc.setFill(color);
+            gc.fillOval(cellX + 5, cellY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(2);
+            gc.strokeOval(cellX + 5, cellY + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+            
+            // Numéro du joueur
+            gc.setFill(Color.WHITE);
+            gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 14));
+            gc.fillText(playerNumber, cellX + TILE_SIZE / 2 - 4, cellY + TILE_SIZE / 2 + 5);
+        }
     }
 
     /**
@@ -465,6 +657,34 @@ public class LevelEditorController implements Initializable {
         confirmAlert.setTitle("Nouveau niveau");
         confirmAlert.setHeaderText("Créer un nouveau niveau ?");
         confirmAlert.setContentText("Les modifications non sauvegardées seront perdues.");
+        
+        // Appliquer les styles de l'éditeur de niveau
+        DialogPane dialogPane = confirmAlert.getDialogPane();
+        dialogPane.getStyleClass().add("new-dialog");
+        
+        // Charger le CSS
+        Scene scene = dialogPane.getScene();
+        if (scene != null) {
+            try {
+                String cssPath = getClass().getResource("/com/example/bomberman/view/level-editor-styles.css").toExternalForm();
+                scene.getStylesheets().add(cssPath);
+            } catch (Exception e) {
+                System.err.println("Erreur lors du chargement du CSS: " + e.getMessage());
+            }
+        }
+        
+        // Styliser les boutons
+        Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.getStyleClass().add("ok-button");
+            okButton.setText("Créer nouveau");
+        }
+        
+        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        if (cancelButton != null) {
+            cancelButton.getStyleClass().add("cancel-button");
+            cancelButton.setText("Annuler");
+        }
 
         if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             // Supprimer la sauvegarde temporaire
@@ -480,27 +700,38 @@ public class LevelEditorController implements Initializable {
      */
     @FXML
     private void loadLevel() {
-        Stage stage = (Stage) loadButton.getScene().getWindow();
-        String filePath = FileDialogManager.showLoadDialog(stage);
-
-        if (filePath != null) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try {
+            // Utiliser la méthode showLoadDialog existante
+            Stage stage = (Stage) loadButton.getScene().getWindow();
+            String filePath = FileDialogManager.showLoadDialog(stage);
+            
+            if (filePath == null) return;
+            
+            File selectedFile = new File(filePath);
+            
+            try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile))) {
                 // Lire les dimensions
                 String[] dimensions = reader.readLine().split(",");
                 levelWidth = Integer.parseInt(dimensions[0]);
                 levelHeight = Integer.parseInt(dimensions[1]);
-
+                
+                // Vérifier les dimensions
+                if (levelWidth < MIN_SIZE || levelWidth > MAX_SIZE || levelHeight < MIN_SIZE || levelHeight > MAX_SIZE) {
+                    showAlert("Erreur", "Les dimensions du niveau sont invalides.", Alert.AlertType.ERROR);
+                    return;
+                }
+                
+                // Mettre à jour les spinners
+                widthSpinner.getValueFactory().setValue(levelWidth);
+                heightSpinner.getValueFactory().setValue(levelHeight);
+                
                 // Lire les positions des joueurs
                 String[] players = reader.readLine().split(",");
                 player1X = Integer.parseInt(players[0]);
                 player1Y = Integer.parseInt(players[1]);
                 player2X = Integer.parseInt(players[2]);
                 player2Y = Integer.parseInt(players[3]);
-
-                // Mettre à jour les spinners
-                widthSpinner.getValueFactory().setValue(levelWidth);
-                heightSpinner.getValueFactory().setValue(levelHeight);
-
+                
                 // Lire les données du niveau
                 levelData = new int[levelHeight][levelWidth];
                 for (int y = 0; y < levelHeight; y++) {
@@ -509,18 +740,24 @@ public class LevelEditorController implements Initializable {
                         levelData[y][x] = Integer.parseInt(row[x]);
                     }
                 }
-
-                // Supprimer la sauvegarde temporaire car on a chargé un niveau existant
-                deleteTemporaryState();
                 
-                resizeLevel();
+                // Redimensionner le canvas
+                editorCanvas.setWidth(levelWidth * TILE_SIZE);
+                editorCanvas.setHeight(levelHeight * TILE_SIZE);
+                
+                // Mettre à jour le canvas
+                updateDimensionsLabel();
                 render();
-
-                System.out.println("Niveau chargé avec succès !");
-
-            } catch (Exception e) {
-                showAlert("Erreur", "Impossible de charger le niveau : " + e.getMessage(), Alert.AlertType.ERROR);
+                
+                // Sauvegarder l'état actuel pour la récupération automatique
+                saveTemporaryState();
+                
+                // Appliquer le CSS spécifique à l'éditeur de niveau
+                Platform.runLater(this::applyLevelEditorCSS);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de charger le niveau: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -594,7 +831,12 @@ public class LevelEditorController implements Initializable {
             }
 
             // Charger la scène de jeu avec le niveau créé
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+            URL gameViewUrl = getClass().getResource("/com/example/bomberman/view/game-view.fxml");
+            if (gameViewUrl == null) {
+                throw new IOException("Impossible de trouver le fichier game-view.fxml");
+            }
+            
+            FXMLLoader loader = new FXMLLoader(gameViewUrl);
             Parent gameRoot = loader.load();
 
             // Obtenir le contrôleur de jeu et lui passer le niveau
@@ -628,24 +870,24 @@ public class LevelEditorController implements Initializable {
             
             Scene gameScene = new Scene(gameRoot, sceneWidth, sceneHeight);
 
-            // Charger le CSS s'il existe
+            // Charger le CSS pour le jeu
             try {
-                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
                 if (cssResource != null) {
                     gameScene.getStylesheets().add(cssResource.toExternalForm());
+                } else {
+                    System.err.println("Fichier CSS game-styles.css introuvable");
                 }
             } catch (Exception cssError) {
-                System.out.println("CSS non trouvé, continuation sans styles");
+                System.err.println("Erreur lors du chargement du CSS: " + cssError.getMessage());
             }
 
             stage.setScene(gameScene);
             stage.setTitle("Super Bomberman - Test de niveau");
 
-            System.out.println("Test du niveau lancé avec succès !");
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de lancer le test du niveau : " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur", "Impossible de tester le niveau : " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -687,6 +929,52 @@ public class LevelEditorController implements Initializable {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        
+        // Appliquer les styles de l'éditeur de niveau
+        DialogPane dialogPane = alert.getDialogPane();
+        
+        // Charger le CSS
+        Scene scene = dialogPane.getScene();
+        if (scene != null) {
+            try {
+                String cssPath = getClass().getResource("/com/example/bomberman/view/level-editor-styles.css").toExternalForm();
+                scene.getStylesheets().add(cssPath);
+            } catch (Exception e) {
+                System.err.println("Erreur lors du chargement du CSS: " + e.getMessage());
+            }
+        }
+        
+        // Déterminer la classe CSS en fonction du type d'alerte
+        String dialogClass = "info-dialog";
+        switch (type) {
+            case ERROR:
+                dialogClass = "error-dialog";
+                break;
+            case WARNING:
+                dialogClass = "warning-dialog";
+                break;
+            case CONFIRMATION:
+                dialogClass = "confirm-dialog";
+                break;
+            case INFORMATION:
+                dialogClass = "info-dialog";
+                break;
+            default:
+                dialogClass = "default-dialog";
+        }
+        dialogPane.getStyleClass().add(dialogClass);
+        
+        // Styliser les boutons
+        Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.getStyleClass().add("ok-button");
+        }
+        
+        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        if (cancelButton != null) {
+            cancelButton.getStyleClass().add("cancel-button");
+        }
+        
         alert.showAndWait();
     }
 
@@ -695,49 +983,43 @@ public class LevelEditorController implements Initializable {
      */
     @FXML
     private void returnToMainMenu() {
-        try {
-            // Confirmer si des modifications non sauvegardées existent
-            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmAlert.setTitle("Retour au menu");
-            confirmAlert.setHeaderText("Retourner au menu principal ?");
-            confirmAlert.setContentText("Les modifications non sauvegardées seront perdues.");
-
-            if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-                // Supprimer la sauvegarde temporaire
-                deleteTemporaryState();
+        // Demander confirmation
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Quitter l'éditeur");
+        alert.setHeaderText("Voulez-vous vraiment quitter l'éditeur ?");
+        alert.setContentText("Les modifications non sauvegardées seront perdues.");
+        
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                // Sauvegarder l'état temporaire
+                saveTemporaryState();
                 
-                // Charger la scène du menu principal
+                // Charger le menu principal
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
                 Parent menuRoot = loader.load();
                 
-                // Obtenir le contrôleur du menu pour pouvoir actualiser les éléments si nécessaire
+                // Obtenir le contrôleur du menu et réinitialiser son état
                 MainMenuController menuController = loader.getController();
+                menuController.returnToMenu();
                 
                 // Changer de scène
                 Stage stage = (Stage) returnButton.getScene().getWindow();
-                Scene menuScene = new Scene(menuRoot, 800, 600);
+                Scene menuScene = new Scene(menuRoot, 1000, 700);
                 
-                // Charger le CSS s'il existe
-                try {
-                    var cssResource = getClass().getResource("/com/example/bomberman/style.css");
-                    if (cssResource != null) {
-                        menuScene.getStylesheets().add(cssResource.toExternalForm());
-                    }
-                } catch (Exception cssError) {
-                    System.out.println("CSS non trouvé, continuation sans styles");
+                // Charger le CSS
+                URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                if (cssResource != null) {
+                    menuScene.getStylesheets().add(cssResource.toExternalForm());
                 }
                 
                 stage.setScene(menuScene);
-                stage.setTitle("Super Bomberman - Menu principal");
+                stage.setTitle("Super Bomberman - Menu Principal");
                 
-                // Informer le contrôleur du menu que nous revenons de l'éditeur
-                menuController.returnToMenu();
-                
-                System.out.println("Retour au menu principal");
+            } catch (Exception e) {
+                e.printStackTrace();
+                showAlert("Erreur", "Impossible de charger le menu principal: " + e.getMessage(), Alert.AlertType.ERROR);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger le menu principal.", Alert.AlertType.ERROR);
         }
     }
 

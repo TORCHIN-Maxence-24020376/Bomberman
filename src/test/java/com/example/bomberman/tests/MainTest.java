@@ -1,7 +1,6 @@
 package com.example.bomberman.tests;
 
 import com.example.bomberman.Main;
-import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -13,9 +12,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

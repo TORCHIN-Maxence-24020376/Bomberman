@@ -2,12 +2,9 @@ package com.example.bomberman.tests.controller;
 
 import com.example.bomberman.controller.GameController;
 import com.example.bomberman.models.entities.Player;
-import com.example.bomberman.models.entities.PlayerProfile;
 import com.example.bomberman.models.world.Game;
 import com.example.bomberman.models.world.GameBoard;
-import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;

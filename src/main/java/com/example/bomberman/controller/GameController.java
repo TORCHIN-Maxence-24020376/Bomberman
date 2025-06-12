@@ -2,11 +2,8 @@ package com.example.bomberman.controller;
 
 import com.example.bomberman.models.entities.Bomb;
 import com.example.bomberman.models.entities.Player;
-import com.example.bomberman.models.entities.PlayerProfile;
-import com.example.bomberman.models.world.BotGame;
 import com.example.bomberman.models.world.Game;
 import com.example.bomberman.models.world.GameBoard;
-import com.example.bomberman.service.ProfileManager;
 import com.example.bomberman.service.SoundManager;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
@@ -39,47 +36,54 @@ public class GameController implements Initializable {
     @FXML private Label player1InfoLabel;
     @FXML private Label player2InfoLabel;
     @FXML private Label gameStatusLabel;
-    @FXML private ProgressBar player1HealthBar;
-    @FXML private ProgressBar player2HealthBar;
-    @FXML private HBox player1PowerUpsBox;
-    @FXML private HBox player2PowerUpsBox;
+    @FXML private Label timerLabel;
+    
+    // Nouveaux éléments d'interface
+    @FXML private Label player1BombsLabel;
+    @FXML private Label player2BombsLabel;
+    @FXML private Label player1LivesLabel;
+    @FXML private Label player2LivesLabel;
+    @FXML private Label player1BombsInfoLabel;
+    @FXML private Label player2BombsInfoLabel;
+    @FXML private Label player1RangeLabel;
+    @FXML private Label player2RangeLabel;
+    @FXML private Label player1SpeedLabel;
+    @FXML private Label player2SpeedLabel;
 
     // Modèle du jeu
     protected Game game;
-    protected GraphicsContext gc;
-    protected AnimationTimer gameLoop;
+    private GraphicsContext gc;
+    private AnimationTimer gameLoop;
 
     // Gestion des entrées
-    protected Set<KeyCode> pressedKeys;
+    private Set<KeyCode> pressedKeys;
 
     // Utilitaires
-    protected SoundManager soundManager;
-    protected ProfileManager profileManager;
+    private SoundManager soundManager;
 
     // Configuration
-    protected static final int TILE_SIZE = 40;
+    private static final int TILE_SIZE = 40;
 
     // État du jeu
-    protected boolean gameRunning;
-    protected long gameStartTime;
-    protected long pauseStartTime;
-    protected long totalPauseTime;
-    protected boolean isPaused = false;
+    private boolean gameRunning;
+    private long gameStartTime;
+    private long pauseStartTime;
+    private long totalPauseTime;
+    private boolean isPaused = false;
     
     // Mode test de l'éditeur
-    protected boolean isTestMode = false;
-    protected Stage levelEditorStage = null;
-    
-    // Attributs pour le mode bot
-    protected boolean isBotMode = false;
-    protected BotGame botGame = null;
+    private boolean isTestMode = false;
+    private Stage levelEditorStage = null;
+
+    // Variables pour stocker l'état de la musique
+    private String currentMusic = "game_music";
+    private boolean wasPlayingMusic = true;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         gc = gameCanvas.getGraphicsContext2D();
         pressedKeys = new HashSet<>();
         soundManager = SoundManager.getInstance();
-        profileManager = ProfileManager.getInstance();
 
         initializeGame();
         setupEventHandlers();
@@ -105,8 +109,12 @@ public class GameController implements Initializable {
 
         updateUI();
 
+        // Choisir aléatoirement entre les deux musiques du jeu
+        String[] musics = { "game_music_A", "game_music_B", "game_music_C" };
+        currentMusic = musics[new Random().nextInt(musics.length)];
+        
         // Jouer la musique de jeu
-        soundManager.playBackgroundMusic("/sounds/game_music.mp3");
+        soundManager.playBackgroundMusic(currentMusic);
     }
 
     /**
@@ -116,16 +124,6 @@ public class GameController implements Initializable {
         // Événements clavier
         gameCanvas.setOnKeyPressed(this::handleKeyPressed);
         gameCanvas.setOnKeyReleased(this::handleKeyReleased);
-    }
-
-    /**
-     * Définit les profils des joueurs
-     */
-    public void setPlayerProfiles(PlayerProfile profile1, PlayerProfile profile2) {
-        if (game != null) {
-            game.setPlayerProfiles(profile1, profile2);
-            updateUI();
-        }
     }
 
     /**
@@ -146,7 +144,7 @@ public class GameController implements Initializable {
             } else {
                 // Mettre en pause et afficher le menu
                 togglePause();
-                returnToMenu();
+                showPauseMenu();
             }
         }
     }
@@ -188,17 +186,9 @@ public class GameController implements Initializable {
             if (!player1.isAlive() && !player2.isAlive()) {
                 winMessage = "Match nul !";
             } else if (!player1.isAlive()) {
-                if (isBotMode) {
-                    winMessage = "Le Bot gagne !";
-                } else {
-                    winMessage = "Joueur 2 gagne !";
-                }
+                winMessage = "Joueur 2 gagne !";
             } else {
-                if (isBotMode) {
-                    winMessage = "Vous avez gagné !";
-                } else {
-                    winMessage = "Joueur 1 gagne !";
-                }
+                winMessage = "Joueur 1 gagne !";
             }
 
             // Afficher l'écran de fin
@@ -211,189 +201,115 @@ public class GameController implements Initializable {
      */
     private void showGameOverScreen(String message) {
         soundManager.stopBackgroundMusic();
+        // Jouer la musique de résultat
+        soundManager.playBackgroundMusic("result");
 
-        Alert gameOverAlert = new Alert(Alert.AlertType.INFORMATION);
-        gameOverAlert.setTitle("Fin de partie");
-        gameOverAlert.setHeaderText(message);
-
-        long gameTime = getGameTime();
-        String timeText = String.format("Temps de jeu: %d:%02d", gameTime / 60, gameTime % 60);
-
-        StringBuilder content = new StringBuilder();
-        content.append(timeText).append("\n\n");
-        content.append("Score Joueur 1: ").append(game.getPlayer1Score()).append("\n");
-        content.append("Score Joueur 2: ").append(game.getPlayer2Score()).append("\n");
-        content.append("Bombes placées: ").append(game.getBombsPlaced()).append("\n");
-        content.append("Murs détruits: ").append(game.getWallsDestroyed());
-
-        gameOverAlert.setContentText(content.toString());
-
-        // Boutons différents selon le mode
-        if (isTestMode) {
-            ButtonType returnToEditorButton = new ButtonType("Retour à l'éditeur");
-            gameOverAlert.getButtonTypes().setAll(returnToEditorButton);
+        // Afficher le panneau de fin de jeu dans l'interface
+        VBox gameOverPanel = (VBox) gameCanvas.getScene().lookup("#gameOverPanel");
+        if (gameOverPanel != null) {
+            Label winnerLabel = (Label) gameOverPanel.lookup("#winnerLabel");
+            Label finalScoreLabel = (Label) gameOverPanel.lookup("#finalScoreLabel");
             
-            gameOverAlert.showAndWait().ifPresent(response -> {
-                returnToLevelEditor();
-            });
-        } else {
-            ButtonType newGameButton = new ButtonType("Nouvelle partie");
-            ButtonType menuButton = new ButtonType("Menu principal");
-            ButtonType quitButton = new ButtonType("Quitter");
-
-            gameOverAlert.getButtonTypes().setAll(newGameButton, menuButton, quitButton);
-
-            Optional<ButtonType> result = gameOverAlert.showAndWait();
-
-            if (result.isPresent()) {
-                if (result.get() == newGameButton) {
-                    restartGame();
-                } else if (result.get() == menuButton) {
-                    returnToMenu();
-                } else {
-                    Platform.exit();
-                }
+            if (winnerLabel != null) {
+                winnerLabel.setText(message);
             }
+            
+            if (finalScoreLabel != null) {
+                finalScoreLabel.setText("Score: " + game.getPlayer1Score() + " - " + game.getPlayer2Score());
+            }
+            
+            gameOverPanel.setVisible(true);
+        } else {
+            // Fallback si le panneau n'est pas trouvé
+            Alert gameOverAlert = new Alert(Alert.AlertType.INFORMATION);
+            gameOverAlert.setTitle("Fin de partie");
+            gameOverAlert.setHeaderText(message);
+            gameOverAlert.setContentText("Score final: " + game.getPlayer1Score() + " - " + game.getPlayer2Score());
+            gameOverAlert.showAndWait();
         }
     }
 
     /**
-     * Redémarre une nouvelle partie
+     * Redémarre la partie
      */
-    private void restartGame() {
+    @FXML
+    public void restartGame() {
+        // Arrêter la boucle de jeu actuelle
         stopGameLoop();
+        
+        // Réinitialiser le jeu
         initializeGame();
+        
+        // Masquer le panneau de fin de jeu s'il est visible
+        VBox gameOverPanel = (VBox) gameCanvas.getScene().lookup("#gameOverPanel");
+        if (gameOverPanel != null) {
+            gameOverPanel.setVisible(false);
+        }
+        
+        // Redémarrer la boucle de jeu
+        startGameLoop();
+        
+        // Redonner le focus au canvas
+        gameCanvas.requestFocus();
     }
 
     /**
-     * Bascule l'état de pause
+     * Bascule l'état de pause du jeu
      */
-    private void togglePause() {
+    @FXML
+    public void togglePause() {
+        isPaused = !isPaused;
+        
         if (isPaused) {
-            // Reprendre
-            isPaused = false;
-            gameRunning = true;
-            totalPauseTime += System.currentTimeMillis() - pauseStartTime;
-            if (gameStatusLabel != null) {
-                gameStatusLabel.setText("En cours");
-            }
-        } else {
-            // Pause
-            isPaused = true;
-            gameRunning = false;
             pauseStartTime = System.currentTimeMillis();
-            if (gameStatusLabel != null) {
-                gameStatusLabel.setText("PAUSE");
-            }
-        }
-    }
-
-    /**
-     * Retourne au menu principal - VERSION ROBUSTE
-     */
-    private void returnToMenu() {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Menu de pause");
-        confirmAlert.setHeaderText("Options");
-        
-        // Boutons différents selon le mode
-        ButtonType returnButton = new ButtonType("Retour au menu principal");
-        ButtonType restartButton = new ButtonType("Nouvelle partie");
-        ButtonType continueButton = new ButtonType("Continuer", ButtonType.CANCEL.getButtonData());
-        
-        if (isTestMode) {
-            ButtonType editorButton = new ButtonType("Retour à l'éditeur");
-            confirmAlert.getButtonTypes().setAll(editorButton, restartButton, returnButton, continueButton);
+            gameStatusLabel.setText("PAUSE");
+            // Mettre en pause la musique
+            soundManager.stopBackgroundMusic();
         } else {
-            confirmAlert.getButtonTypes().setAll(restartButton, returnButton, continueButton);
+            totalPauseTime += System.currentTimeMillis() - pauseStartTime;
+            gameStatusLabel.setText("En cours");
+            // Reprendre la musique
+            soundManager.playBackgroundMusic(currentMusic);
         }
-
-        confirmAlert.showAndWait().ifPresent(response -> {
-            if (response == returnButton) {
-                stopGameLoop();
-                soundManager.stopBackgroundMusic();
-
-                try {
-                    // Essayer de charger le menu
-                    String[] possiblePaths = {
-                            "/com/example/bomberman/view/menu-view.fxml",
-                            "menu-view.fxml",
-                            "/menu-view.fxml"
-                    };
-
-                    Parent menuRoot = null;
-                    for (String path : possiblePaths) {
-                        try {
-                            URL resourceUrl = getClass().getResource(path);
-                            if (resourceUrl != null) {
-                                FXMLLoader loader = new FXMLLoader(resourceUrl);
-                                menuRoot = loader.load();
-                                System.out.println("Menu chargé depuis: " + path);
-                                break;
-                            }
-                        } catch (Exception e) {
-                            continue;
-                        }
-                    }
-
-                    if (menuRoot != null) {
-                        Stage stage = (Stage) gameCanvas.getScene().getWindow();
-                        Scene menuScene = new Scene(menuRoot, 800, 600);
-
-                        // Charger CSS si disponible
-                        try {
-                            URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
-                            if (cssResource != null) {
-                                menuScene.getStylesheets().add(cssResource.toExternalForm());
-                            }
-                        } catch (Exception cssError) {
-                            // Ignorer l'erreur CSS
-                        }
-
-                        stage.setScene(menuScene);
-                        stage.setTitle("Super Bomberman");
-                    } else {
-                        // Si pas de menu, proposer de fermer ou continuer
-                        showNoMenuAlert();
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    showNoMenuAlert();
-                }
-
-            } else if (response == restartButton) {
-                restartGame();
-            } else if (isTestMode && response.getText().equals("Retour à l'éditeur")) {
-                returnToLevelEditor();
-            }
-            // Si Cancel, ne rien faire (continuer la partie)
-        });
     }
 
     /**
-     * Affiche une alerte quand le menu n'est pas disponible
+     * Retourne au menu principal
      */
-    private void showNoMenuAlert() {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Menu non disponible");
-        alert.setHeaderText("Le menu principal n'est pas disponible");
-        alert.setContentText("Voulez-vous fermer l'application ?");
-
-        ButtonType closeButton = new ButtonType("Fermer l'application");
-        ButtonType continueButton = new ButtonType("Continuer la partie");
-
-        alert.getButtonTypes().setAll(closeButton, continueButton);
-
-        alert.showAndWait().ifPresent(response -> {
-            if (response == closeButton) {
-                Platform.exit();
-            } else {
-                // Continuer la partie
-                isPaused = false;
-                gameRunning = true;
+    @FXML
+    public void returnToMainMenu() {
+        try {
+            // Arrêter la boucle de jeu
+            stopGameLoop();
+            
+            // Arrêter la musique du jeu
+            soundManager.stopBackgroundMusic();
+            
+            // Charger le menu principal
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
+            Parent menuRoot = loader.load();
+            
+            // Obtenir le contrôleur du menu et réinitialiser son état
+            MainMenuController menuController = loader.getController();
+            menuController.returnToMenu();
+            
+            // Changer de scène
+            Scene menuScene = new Scene(menuRoot, 1000, 700);
+            
+            // Charger le CSS du menu
+            URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
+            if (cssResource != null) {
+                menuScene.getStylesheets().add(cssResource.toExternalForm());
             }
-        });
+            
+            Stage stage = (Stage) gameCanvas.getScene().getWindow();
+            stage.setScene(menuScene);
+            stage.setTitle("Super Bomberman - Menu Principal");
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            showNoMenuAlert();
+        }
     }
 
     /**
@@ -467,73 +383,87 @@ public class GameController implements Initializable {
             gc.fillText("Appuyez sur Échap pour reprendre", gameCanvas.getWidth()/2 - 120, gameCanvas.getHeight()/2 + 40);
         }
 
-        // Afficher les informations sur le canvas si les labels n'existent pas
-        if (player1InfoLabel == null || player2InfoLabel == null) {
-            renderGameInfo();
-        }
+        // Mettre à jour l'interface utilisateur
+        updateUI();
     }
 
     /**
      * Affiche les informations de jeu sur le canvas
      */
     private void renderGameInfo() {
-        gc.setFill(Color.WHITE);
-        gc.setFont(javafx.scene.text.Font.font("Arial", 14));
-
-        if (game.getPlayer1() != null) {
-            String player1Info = "Joueur 1 (ZQSD + A) - Vies: " + game.getPlayer1().getLives() +
-                    " - Score: " + game.getPlayer1Score();
-            gc.fillText(player1Info, 10, 20);
-        }
-
-        if (game.getPlayer2() != null) {
-            String player2Info = "Joueur 2 (Flèches + Espace) - Vies: " + game.getPlayer2().getLives() +
-                    " - Score: " + game.getPlayer2Score();
-            gc.fillText(player2Info, 10, 40);
-        }
-
-        // Temps de jeu
-        long gameTime = getGameTime();
-        String timeText = String.format("Temps: %d:%02d", gameTime / 60, gameTime % 60);
-        gc.fillText(timeText, 10, 60);
+        // Ne rien afficher sur le canvas - utiliser uniquement le HUD
+        updateUI();
     }
 
     /**
      * Met à jour l'interface utilisateur
      */
-    protected void updateUI() {
-        Platform.runLater(() -> {
-            updatePlayerInfo();
-            updateHealthBars();
-        });
+    private void updateUI() {
+        // Mettre à jour les informations des joueurs
+        updatePlayerInfo();
+        
+        // Mettre à jour le timer
+        updateGameTimer();
     }
 
     /**
      * Met à jour les informations des joueurs
      */
     private void updatePlayerInfo() {
-        if (player1InfoLabel != null && player2InfoLabel != null) {
-            Player player1 = game.getPlayer1();
-            Player player2 = game.getPlayer2();
-            
-            String player1Name = player1.getProfile() != null ? player1.getProfile().getFullName() : "Joueur 1";
-            String player2Name = isBotMode ? "Bot" : (player2.getProfile() != null ? player2.getProfile().getFullName() : "Joueur 2");
-            
-            // Utiliser les méthodes appropriées pour obtenir les informations des bombes
-            player1InfoLabel.setText(player1Name + " - Score: " + game.getPlayer1Score());
-            player2InfoLabel.setText(player2Name + " - Score: " + game.getPlayer2Score());
+        Player player1 = game.getPlayer1();
+        Player player2 = game.getPlayer2();
+        
+        // Mettre à jour les informations du HUD
+        if (player1BombsLabel != null) {
+            player1BombsLabel.setText(String.valueOf(player1.getMaxBombs() - player1.getCurrentBombs()));
         }
-    }
-
-    /**
-     * Met à jour les barres de vie
-     */
-    private void updateHealthBars() {
-        if (player1HealthBar != null && game.getPlayer1() != null) {
-            player1HealthBar.setProgress(game.getPlayer1().getLives() / 3.0);
+        
+        if (player2BombsLabel != null) {
+            player2BombsLabel.setText(String.valueOf(player2.getMaxBombs() - player2.getCurrentBombs()));
         }
-        if (player2HealthBar != null && game.getPlayer2() != null) {
-            player2HealthBar.setProgress(game.getPlayer2().getLives() / 3.0);
+        
+        if (player1LivesLabel != null) {
+            player1LivesLabel.setText(String.valueOf(player1.getLives()));
+        }
+        
+        if (player2LivesLabel != null) {
+            player2LivesLabel.setText(String.valueOf(player2.getLives()));
+        }
+        
+        // Mettre à jour les informations détaillées du panneau latéral
+        if (player1InfoLabel != null) {
+            player1InfoLabel.setText("Joueur 1 - Score: " + game.getPlayer1Score());
+        }
+        
+        if (player2InfoLabel != null) {
+            player2InfoLabel.setText("Joueur 2 - Score: " + game.getPlayer2Score());
+        }
+        
+        // Mettre à jour les informations détaillées du panneau latéral si présent
+        if (gameInfoPanel != null && gameInfoPanel.isVisible()) {
+            if (player1BombsInfoLabel != null) {
+                player1BombsInfoLabel.setText(String.valueOf(player1.getMaxBombs()));
+            }
+            
+            if (player2BombsInfoLabel != null) {
+                player2BombsInfoLabel.setText(String.valueOf(player2.getMaxBombs()));
+            }
+            
+            if (player1RangeLabel != null) {
+                player1RangeLabel.setText(String.valueOf(player1.getBombRange()));
+            }
+            
+            if (player2RangeLabel != null) {
+                player2RangeLabel.setText(String.valueOf(player2.getBombRange()));
+            }
+            
+            if (player1SpeedLabel != null) {
+                player1SpeedLabel.setText("1");
+            }
+            
+            if (player2SpeedLabel != null) {
+                player2SpeedLabel.setText("1");
+            }
         }
     }
 
@@ -541,69 +471,85 @@ public class GameController implements Initializable {
      * Met à jour le statut du jeu
      */
     private void updateGameStatus() {
-        if (gameStatusLabel != null && !isPaused) {
-            Platform.runLater(() -> {
-                long gameTime = getGameTime();
-                String timeText = String.format("Temps: %d:%02d", gameTime / 60, gameTime % 60);
-                gameStatusLabel.setText(timeText);
-            });
+        if (gameStatusLabel != null) {
+            if (isPaused) {
+                gameStatusLabel.setText("Jeu en pause");
+            } else if (gameRunning) {
+                gameStatusLabel.setText("En cours");
+            } else {
+                gameStatusLabel.setText("Partie terminée");
+            }
+        }
+        
+        // Mettre à jour le timer
+        updateGameTimer();
+    }
+    
+    /**
+     * Met à jour le chronomètre du jeu
+     */
+    private void updateGameTimer() {
+        if (timerLabel != null) {
+            long gameTimeSeconds = getGameTime() / 1000;
+            timerLabel.setText(formatTime(gameTimeSeconds));
         }
     }
 
     /**
-     * Calcule le temps de jeu total
+     * Retourne le temps de jeu écoulé en millisecondes
      */
     private long getGameTime() {
-        long currentTime = System.currentTimeMillis();
-        long totalTime = currentTime - gameStartTime - totalPauseTime;
-
-        if (isPaused) {
-            totalTime -= (currentTime - pauseStartTime);
+        if (!gameRunning) {
+            return 0;
         }
-
-        return totalTime / 1000; // Retour en secondes
+        
+        long currentTime = System.currentTimeMillis();
+        long elapsedTime;
+        
+        if (isPaused) {
+            elapsedTime = pauseStartTime - gameStartTime - totalPauseTime;
+        } else {
+            elapsedTime = currentTime - gameStartTime - totalPauseTime;
+        }
+        
+        return Math.max(0, elapsedTime);
     }
 
     /**
-     * Affiche une alerte
+     * Formate le temps en minutes:secondes
+     */
+    private String formatTime(long timeInSeconds) {
+        long minutes = timeInSeconds / 60;
+        long seconds = timeInSeconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
+    }
+
+    /**
+     * Affiche une alerte simple
      */
     private void showAlert(String title, String message, Alert.AlertType type) {
-        try {
-            Alert alert = new Alert(type);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.showAndWait();
-        } catch (Exception e) {
-            System.err.println("Impossible d'afficher l'alerte: " + e.getMessage());
-        }
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     /**
      * Charge un niveau personnalisé depuis un fichier
-     * @param levelPath Chemin vers le fichier de niveau
      */
     public void loadCustomLevel(String levelPath) {
-        if (game == null) {
-            game = new Game();
+        game = new Game();
+        game.loadLevel(levelPath);
+        
+        // Adapter la taille du canvas
+        if (gameCanvas != null) {
+            gameCanvas.setWidth(Math.max(game.getBoard().getWidth() * TILE_SIZE, 800));
+            gameCanvas.setHeight(Math.max(game.getBoard().getHeight() * TILE_SIZE, 600));
         }
         
-        if (game.loadLevel(levelPath)) {
-            gameRunning = true;
-            gameStartTime = System.currentTimeMillis();
-            totalPauseTime = 0;
-            isPaused = false;
-            
-            updateUI();
-            
-            // Jouer la musique de jeu
-            soundManager.playBackgroundMusic("/sounds/game_music.mp3");
-            
-            System.out.println("Niveau personnalisé chargé : " + levelPath);
-        } else {
-            showAlert("Erreur", "Impossible de charger le niveau personnalisé.", Alert.AlertType.ERROR);
-            initializeGame(); // Fallback vers un niveau standard
-        }
+        gameRunning = true;
+        updateUI();
     }
 
     /**
@@ -611,6 +557,17 @@ public class GameController implements Initializable {
      */
     public void setTestMode(boolean testMode) {
         this.isTestMode = testMode;
+        
+        // Si en mode test, s'assurer que la musique est jouée
+        if (testMode && soundManager.isMusicEnabled()) {
+            // Choisir aléatoirement entre les musiques du jeu
+            String[] musics = { "game_music_A", "game_music_B", "game_music_C" };
+            currentMusic = musics[new Random().nextInt(musics.length)];
+            
+            // Arrêter la musique actuelle et jouer la musique du jeu
+            soundManager.stopBackgroundMusic();
+            soundManager.playBackgroundMusic(currentMusic);
+        }
     }
     
     /**
@@ -646,7 +603,7 @@ public class GameController implements Initializable {
                 
                 // Charger le CSS
                 try {
-                    URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                    var cssResource = getClass().getResource("/com/example/bomberman/style.css");
                     if (cssResource != null) {
                         editorScene.getStylesheets().add(cssResource.toExternalForm());
                     }
@@ -657,6 +614,11 @@ public class GameController implements Initializable {
                 levelEditorStage.setScene(editorScene);
                 levelEditorStage.setTitle("Super Bomberman - Éditeur de niveaux");
                 
+                // Jouer la musique de l'éditeur
+                if (soundManager.isMusicEnabled()) {
+                    soundManager.playBackgroundMusic("editor_music");
+                }
+                
                 System.out.println("Retour à l'éditeur de niveaux");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -666,50 +628,99 @@ public class GameController implements Initializable {
     }
 
     /**
-     * Charger le CSS s'il existe
+     * Affiche une alerte quand le menu n'est pas disponible
      */
-    private void loadCSS(Scene scene) {
-        try {
-            URL cssResource = getClass().getResource("/com/example/bomberman/styles.css");
-            if (cssResource != null) {
-                scene.getStylesheets().add(cssResource.toExternalForm());
+    private void showNoMenuAlert() {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Menu non disponible");
+        alert.setHeaderText("Le menu principal n'est pas disponible");
+        alert.setContentText("Voulez-vous fermer l'application ?");
+
+        ButtonType closeButton = new ButtonType("Fermer l'application");
+        ButtonType continueButton = new ButtonType("Continuer la partie");
+
+        alert.getButtonTypes().setAll(closeButton, continueButton);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == closeButton) {
+                Platform.exit();
+            } else {
+                // Continuer la partie
+                isPaused = false;
+                gameRunning = true;
             }
-        } catch (Exception cssError) {
-            System.out.println("CSS non trouvé, continuation sans styles");
-        }
+        });
     }
 
     /**
-     * Configure le jeu pour utiliser le mode bot
-     * @param botGame Instance de BotGame à utiliser
+     * Affiche le menu de pause
      */
-    public void setBotGame(BotGame botGame) {
-        if (botGame != null) {
-            this.botGame = botGame;
-            this.game = botGame; // BotGame hérite de Game, donc on peut l'utiliser comme un Game
-            this.isBotMode = true;
-            
-            // Mettre à jour l'interface pour le mode bot
-            updateUI();
-            
-            // Afficher un message indiquant le niveau de difficulté
-            String difficultyText;
-            switch (botGame.getDifficultyLevel()) {
-                case 1:
-                    difficultyText = "Facile";
-                    break;
-                case 2:
-                    difficultyText = "Moyen";
-                    break;
-                case 3:
-                    difficultyText = "Difficile";
-                    break;
-                default:
-                    difficultyText = "Inconnu";
+    private void showPauseMenu() {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Menu de pause");
+        confirmAlert.setHeaderText("Options");
+        
+        // Styliser la boîte de dialogue
+        DialogPane dialogPane = confirmAlert.getDialogPane();
+        dialogPane.getStyleClass().add("pause-menu");
+        
+        // Appliquer un style CSS
+        Scene scene = dialogPane.getScene();
+        if (scene != null) {
+            try {
+                scene.getStylesheets().add(getClass().getResource("/com/example/bomberman/view/game-styles.css").toExternalForm());
+            } catch (Exception e) {
+                System.err.println("Erreur lors du chargement du CSS: " + e.getMessage());
             }
-            
-            gameStatusLabel.setText("Mode Bot - Difficulté: " + difficultyText);
         }
+        
+        // Boutons différents selon le mode
+        ButtonType returnButton = new ButtonType("Retour au menu principal");
+        ButtonType restartButton = new ButtonType("Nouvelle partie");
+        ButtonType continueButton = new ButtonType("Continuer", ButtonType.CANCEL.getButtonData());
+        
+        if (isTestMode) {
+            ButtonType editorButton = new ButtonType("Retour à l'éditeur");
+            confirmAlert.getButtonTypes().setAll(editorButton, restartButton, returnButton, continueButton);
+        } else {
+            confirmAlert.getButtonTypes().setAll(restartButton, returnButton, continueButton);
+        }
+        
+        // Styliser les boutons
+        Button returnBtn = (Button) dialogPane.lookupButton(returnButton);
+        if (returnBtn != null) {
+            returnBtn.getStyleClass().add("menu-button");
+        }
+        
+        Button restartBtn = (Button) dialogPane.lookupButton(restartButton);
+        if (restartBtn != null) {
+            restartBtn.getStyleClass().add("restart-button");
+        }
+        
+        Button continueBtn = (Button) dialogPane.lookupButton(continueButton);
+        if (continueBtn != null) {
+            continueBtn.getStyleClass().add("continue-button");
+        }
+        
+        if (isTestMode) {
+            Button editorBtn = (Button) dialogPane.lookupButton(confirmAlert.getDialogPane().getButtonTypes().get(0));
+            if (editorBtn != null) {
+                editorBtn.getStyleClass().add("editor-button");
+            }
+        }
+
+        confirmAlert.showAndWait().ifPresent(response -> {
+            if (response == returnButton) {
+                returnToMainMenu();
+            } else if (response == restartButton) {
+                restartGame();
+            } else if (isTestMode && response.getText().equals("Retour à l'éditeur")) {
+                returnToLevelEditor();
+            } else {
+                // Si Cancel, reprendre la partie
+                togglePause();
+            }
+        });
     }
 
     /**
@@ -719,28 +730,36 @@ public class GameController implements Initializable {
     protected void setGame(Game game) {
         this.game = game;
     }
-    
+
     /**
-     * Retourne le contexte graphique du canvas
-     * @return Le contexte graphique
+     * Charge un jeu personnalisé
+     * @param game Instance de jeu à utiliser
      */
-    protected GraphicsContext getGraphicsContext() {
-        return gc;
-    }
-    
-    /**
-     * Retourne le label de statut du jeu
-     * @return Le label de statut
-     */
-    protected Label getGameStatusLabel() {
-        return gameStatusLabel;
-    }
-    
-    /**
-     * Retourne le jeu actuel
-     * @return Le jeu
-     */
-    protected Game getGame() {
-        return game;
+    public void loadCustomGame(Game game) {
+        if (game != null) {
+            this.game = game;
+            gameRunning = true;
+            gameStartTime = System.currentTimeMillis();
+            totalPauseTime = 0;
+            isPaused = false;
+            
+            updateUI();
+            
+            // Jouer la musique du jeu
+            if (game instanceof com.example.bomberman.models.world.BotGame) {
+                // Musique spécifique pour le mode IA
+                soundManager.playBackgroundMusic("game_music_B");
+                
+                // Mettre à jour l'interface avec l'information du bot
+                if (player2InfoLabel != null) {
+                    player2InfoLabel.setText("BOT - Score: 0");
+                }
+            } else {
+                // Musique standard
+                soundManager.playBackgroundMusic("game_music");
+            }
+            
+            System.out.println("Jeu personnalisé chargé");
+        }
     }
 }

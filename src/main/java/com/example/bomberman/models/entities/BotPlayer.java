@@ -222,4 +222,4 @@ public class BotPlayer extends Player {
     public int getDifficultyLevel() {
         return difficultyLevel;
     }
-}
+} 
