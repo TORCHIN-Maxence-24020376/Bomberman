@@ -278,12 +278,6 @@ public class GameController implements Initializable {
      */
     @FXML
     public void returnToMainMenu() {
-        // Si en mode test, retourner à l'éditeur de niveau
-        if (isTestMode && levelEditorStage != null) {
-            returnToLevelEditor();
-            return;
-        }
-        
         try {
             // Arrêter la boucle de jeu
             stopGameLoop();
@@ -295,11 +289,15 @@ public class GameController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
             Parent menuRoot = loader.load();
             
+            // Obtenir le contrôleur du menu et réinitialiser son état
+            MainMenuController menuController = loader.getController();
+            menuController.returnToMenu();
+            
             // Changer de scène
             Scene menuScene = new Scene(menuRoot, 1000, 700);
             
             // Charger le CSS du menu
-            URL cssResource = getClass().getResource("/com/example/bomberman/view/menu-styles.css");
+            URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
             if (cssResource != null) {
                 menuScene.getStylesheets().add(cssResource.toExternalForm());
             }

@@ -1,75 +1,86 @@
 package com.example.bomberman.controller;
 
 import com.example.bomberman.service.SoundManager;
-import com.example.bomberman.service.UserPreferences;
-import com.example.bomberman.utils.ResourceManager;
-import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 /**
- * Contrôleur pour le menu principal du jeu
+ * Contrôleur simplifié pour le menu principal
  */
 public class MainMenuController implements Initializable {
 
-    @FXML private BorderPane mainContainer;
-    @FXML private VBox menuOptions;
     @FXML private Button playButton;
-    @FXML private Button botGameButton;
-    @FXML private Button levelEditorButton;
     @FXML private Button settingsButton;
+    @FXML private Button levelEditorButton;
     @FXML private Button quitButton;
-    @FXML private Label titleLabel;
+    @FXML private StackPane rootPane;  // Référence à l'élément racine StackPane
 
     private SoundManager soundManager;
-    private UserPreferences userPreferences;
-    private ResourceManager resourceManager;
+    private boolean isInitialized = false;
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        soundManager = SoundManager.getInstance();
-        userPreferences = UserPreferences.getInstance();
-        resourceManager = ResourceManager.getInstance();
-
-        // Appliquer les préférences utilisateur
-        userPreferences.applyPreferences();
-
-        // Jouer la musique du menu si elle est activée
-        if (userPreferences.isMusicEnabled()) {
-        soundManager.playBackgroundMusic("menu");
-    }
-
-        // Animation du titre
-        animateTitle();
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        if (!isInitialized) {
+            soundManager = SoundManager.getInstance();
+            initializeComponents();
+            setupBackground();
+            startMenuMusic();
+            isInitialized = true;
+        }
     }
 
     /**
-     * Anime le titre avec un effet de pulsation
+     * Initialise les composants de l'interface
      */
-    private void animateTitle() {
-        if (titleLabel != null) {
-            FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1.5), titleLabel);
-            fadeTransition.setFromValue(0.7);
-            fadeTransition.setToValue(1.0);
-            fadeTransition.setCycleCount(FadeTransition.INDEFINITE);
-            fadeTransition.setAutoReverse(true);
-            fadeTransition.play();
+    private void initializeComponents() {
+        // Configuration des boutons
+        playButton.setOnAction(e -> startGame());
+        settingsButton.setOnAction(e -> openSettings());
+        levelEditorButton.setOnAction(e -> openLevelEditor());
+        quitButton.setOnAction(e -> quitGame());
+    }
+
+    /**
+     * Configure l'image de fond
+     */
+    private void setupBackground() {
+        try {
+            if (rootPane != null) {
+                String imagePath = "/com/example/bomberman/Images/coocked_question_mark.png";
+                URL imageUrl = getClass().getResource(imagePath);
+                
+                if (imageUrl != null) {
+                    rootPane.setStyle("-fx-background-image: url('" + imagePath + "'); " +
+                                    "-fx-background-size: cover; " +
+                                    "-fx-background-position: center center;");
+                } else {
+                    System.err.println("Image non trouvée à : " + imagePath);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la configuration de l'arrière-plan : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Démarre la musique du menu
+     */
+    private void startMenuMusic() {
+        if (soundManager.isMusicEnabled()) {
+            soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
         }
     }
 
@@ -77,378 +88,146 @@ public class MainMenuController implements Initializable {
      * Démarre une nouvelle partie
      */
     @FXML
-    private void startNewGame() {
+    private void startGame() {
         try {
-            // Arrêter la musique du menu et jouer celle du jeu si la musique est activée
-            if (userPreferences.isMusicEnabled()) {
             soundManager.stopBackgroundMusic();
-            soundManager.playBackgroundMusic("game_music");
-            }
 
-            // Charger la vue du jeu
+            // Charger la scène de jeu existante
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
             Parent gameRoot = loader.load();
 
-            // Créer une nouvelle scène pour le jeu
-            Scene gameScene = new Scene(gameRoot, 1000, 900);
-            
-            // Ajouter le CSS pour le jeu
-            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            // Changer de scène
+            Stage stage = (Stage) playButton.getScene().getWindow();
+            Scene gameScene = new Scene(gameRoot, 800, 600);
+
+            // Charger le CSS s'il existe
+            try {
+                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
                 if (cssResource != null) {
                     gameScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé, continuation sans styles");
+                cssError.printStackTrace();
             }
 
-            // Obtenir le stage actuel
-            Stage stage = (Stage) playButton.getScene().getWindow();
-            
-            // Changer la scène
             stage.setScene(gameScene);
-            stage.setTitle("Super Bomberman - Partie en cours");
+            stage.setTitle("Super Bomberman - En jeu");
+
+            System.out.println("Jeu lancé avec succès !");
 
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Erreur au chargement du jeu", e.getMessage());
+            showAlert("Erreur", "Impossible de charger le jeu.\nUtilisation du jeu de base.", Alert.AlertType.WARNING);
+
+            // Fallback : lancer le jeu directement sans menu
+            launchBasicGame();
         }
     }
-    
+
     /**
-     * Démarre une partie contre l'IA
+     * Lance le jeu de base en cas d'erreur
+     */
+    private void launchBasicGame() {
+        try {
+            // Créer une nouvelle fenêtre avec le jeu original
+            Stage gameStage = new Stage();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+            Parent root = loader.load();
+
+            Scene gameScene = new Scene(root, 800, 600);
+            gameStage.setScene(gameScene);
+            gameStage.setTitle("Super Bomberman");
+            gameStage.show();
+
+            // Fermer la fenêtre du menu
+            Stage currentStage = (Stage) playButton.getScene().getWindow();
+            currentStage.close();
+
+        } catch (Exception fallbackError) {
+            showAlert("Erreur critique", "Impossible de lancer le jeu : " + fallbackError.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    /**
+     * Ouvre les paramètres
      */
     @FXML
-    private void startBotGame() {
+    private void openSettings() {
         try {
-            // Afficher une boîte de dialogue pour choisir la difficulté
-            int difficultyLevel = showDifficultyDialog();
-            if (difficultyLevel == 0) {
-                // L'utilisateur a annulé, ne rien faire
-                return;
+            // Créer une nouvelle fenêtre pour les paramètres
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/settings-view.fxml"));
+            Parent settingsRoot = loader.load();
+            
+            // Créer une nouvelle scène
+            Scene settingsScene = new Scene(settingsRoot, 600, 500);
+            
+            // Appliquer le CSS si disponible
+            try {
+                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                if (cssResource != null) {
+                    settingsScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé pour les paramètres, continuation sans styles");
+                cssError.printStackTrace();
             }
             
-            // Arrêter la musique du menu et jouer celle du jeu si la musique est activée
-            if (userPreferences.isMusicEnabled()) {
-                soundManager.stopBackgroundMusic();
-                soundManager.playBackgroundMusic("game_music");
-            }
-
-            // Charger la vue du jeu standard (nous modifierons le contrôleur)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
-            Parent gameRoot = loader.load();
+            // Créer une nouvelle fenêtre
+            Stage settingsStage = new Stage();
+            settingsStage.setTitle("Paramètres - Super Bomberman");
+            settingsStage.setScene(settingsScene);
+            settingsStage.setResizable(false);
             
-            // Récupérer le contrôleur de jeu
-            GameController gameController = loader.getController();
+            // Afficher la fenêtre modale (bloque l'interaction avec la fenêtre principale)
+            settingsStage.initOwner((Stage) settingsButton.getScene().getWindow());
+            settingsStage.showAndWait();
             
-            // Créer une instance de BotGame
-            com.example.bomberman.models.world.BotGame botGame = 
-                new com.example.bomberman.models.world.BotGame(difficultyLevel);
+            // Rafraîchir les paramètres audio après fermeture
+            soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
             
-            // Définir le jeu du contrôleur
-            gameController.loadCustomGame(botGame);
-
-            // Créer une nouvelle scène pour le jeu
-            Scene gameScene = new Scene(gameRoot, 1000, 900);
-            
-            // Ajouter le CSS pour le jeu
-            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
-            if (cssResource != null) {
-                gameScene.getStylesheets().add(cssResource.toExternalForm());
-            }
-
-            // Obtenir le stage actuel
-            Stage stage = (Stage) botGameButton.getScene().getWindow();
-            
-            // Changer la scène
-            stage.setScene(gameScene);
-            stage.setTitle("Super Bomberman - Mode VS IA (Niveau " + difficultyLevel + ")");
-            
-            // Afficher les instructions du mode IA
-            showBotInstructions(difficultyLevel);
-
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Erreur au chargement du mode IA", e.getMessage());
+            showAlert("Erreur", "Impossible de charger l'interface des paramètres.", Alert.AlertType.ERROR);
         }
-    }
-    
-    /**
-     * Affiche une boîte de dialogue pour choisir la difficulté du bot
-     * @return Le niveau de difficulté (1-3) ou 0 si annulé
-     */
-    private int showDifficultyDialog() {
-        Dialog<Integer> dialog = new Dialog<>();
-        dialog.setTitle("Difficulté du Bot");
-        dialog.setHeaderText("Choisissez le niveau de difficulté");
-        
-        // Ajouter des boutons pour chaque niveau de difficulté
-        ButtonType easyButton = new ButtonType("Facile", ButtonBar.ButtonData.OK_DONE);
-        ButtonType mediumButton = new ButtonType("Moyen", ButtonBar.ButtonData.OK_DONE);
-        ButtonType hardButton = new ButtonType("Difficile", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        
-        dialog.getDialogPane().getButtonTypes().addAll(easyButton, mediumButton, hardButton, cancelButton);
-        
-        // Convertir le résultat en entier
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == easyButton) {
-                return 1;
-            } else if (dialogButton == mediumButton) {
-                return 2;
-            } else if (dialogButton == hardButton) {
-                return 3;
-            }
-            return 0; // Annulé
-        });
-        
-        Optional<Integer> result = dialog.showAndWait();
-        return result.orElse(0);
-    }
-    
-    /**
-     * Affiche les instructions du mode Bot
-     */
-    private void showBotInstructions(int difficultyLevel) {
-        String difficultyText;
-        switch (difficultyLevel) {
-            case 1: difficultyText = "Facile"; break;
-            case 2: difficultyText = "Moyen"; break;
-            case 3: difficultyText = "Difficile"; break;
-            default: difficultyText = "Inconnu";
-        }
-        
-        String instructions = 
-            "Mode VS IA - Niveau : " + difficultyText + "\n\n" +
-            "Bienvenue dans le mode VS IA !\n\n" +
-            "Vous affrontez un bot avec intelligence artificielle.\n" +
-            "Collectez des power-ups et utilisez des stratégies pour vaincre votre adversaire robot.\n\n" +
-            "Contrôles:\n" +
-            "• ZQSD: Déplacer le joueur\n" +
-            "• A: Placer une bombe\n" +
-            "• Échap: Pause/Menu\n\n" +
-            "Bonne chance !";
-        
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Mode VS IA");
-            alert.setHeaderText(null);
-            alert.setContentText(instructions);
-            alert.showAndWait();
-        });
     }
 
     /**
-     * Ouvre l'éditeur de niveaux
+     * Ouvre l'éditeur de niveau
      */
     @FXML
     private void openLevelEditor() {
         try {
-            // Arrêter la musique du menu et jouer celle de l'éditeur si la musique est activée
-            if (userPreferences.isMusicEnabled()) {
             soundManager.stopBackgroundMusic();
-            soundManager.playBackgroundMusic("editor_music");
-            }
 
-            // Charger la vue de l'éditeur de niveaux
+            // Charger la scène de l'éditeur de niveau
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/level-editor-view.fxml"));
             Parent editorRoot = loader.load();
 
-            // Créer une nouvelle scène pour l'éditeur
-            Scene editorScene = new Scene(editorRoot, 1000, 900);
+            // Changer de scène
+            Stage stage = (Stage) levelEditorButton.getScene().getWindow();
+            Scene editorScene = new Scene(editorRoot, 800, 600);
 
-            // Ajouter le CSS pour l'éditeur
-            URL cssResource = getClass().getResource("/com/example/bomberman/view/level-editor-styles.css");
+            // Charger le CSS s'il existe
+            try {
+                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
                 if (cssResource != null) {
                     editorScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+            } catch (Exception cssError) {
+                System.out.println("CSS non trouvé, continuation sans styles");
+                cssError.printStackTrace();
             }
 
-            // Obtenir le stage actuel
-            Stage stage = (Stage) levelEditorButton.getScene().getWindow();
-            
-            // Changer la scène
             stage.setScene(editorScene);
             stage.setTitle("Super Bomberman - Éditeur de niveaux");
 
+            System.out.println("Éditeur de niveaux lancé avec succès !");
+
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Erreur au chargement de l'éditeur", e.getMessage());
-        }
-    }
-
-    /**
-     * Ouvre les paramètres avec contrôles de volume
-     */
-    @FXML
-    private void openSettings() {
-        // Créer une fenêtre de dialogue personnalisée
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Paramètres");
-        dialog.setHeaderText("Paramètres du jeu");
-        
-        // Configurer les boutons
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        
-        // Créer la mise en page
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-        
-        // Activer/désactiver les sons
-        CheckBox soundEnabledCheckbox = new CheckBox("Sons activés");
-        soundEnabledCheckbox.setSelected(userPreferences.isSoundEnabled());
-        
-        // Bouton pour couper/activer rapidement les sons
-        Button toggleSoundButton = new Button(userPreferences.isSoundEnabled() ? "Couper les sons" : "Activer les sons");
-        toggleSoundButton.setOnAction(e -> {
-            boolean newState = !userPreferences.isSoundEnabled();
-            soundManager.setSoundEnabled(newState);
-            soundEnabledCheckbox.setSelected(newState);
-            toggleSoundButton.setText(newState ? "Couper les sons" : "Activer les sons");
-        });
-        
-        // Mise à jour du checkbox qui met aussi à jour le bouton
-        soundEnabledCheckbox.setOnAction(e -> {
-            boolean selected = soundEnabledCheckbox.isSelected();
-            soundManager.setSoundEnabled(selected);
-            toggleSoundButton.setText(selected ? "Couper les sons" : "Activer les sons");
-        });
-        
-        // Activer/désactiver la musique
-        CheckBox musicEnabledCheckbox = new CheckBox("Musique activée");
-        musicEnabledCheckbox.setSelected(userPreferences.isMusicEnabled());
-        
-        // Bouton pour couper/activer rapidement la musique
-        Button toggleMusicButton = new Button(userPreferences.isMusicEnabled() ? "Couper la musique" : "Activer la musique");
-        toggleMusicButton.setOnAction(e -> {
-            boolean newState = !userPreferences.isMusicEnabled();
-            soundManager.setMusicEnabled(newState);
-            musicEnabledCheckbox.setSelected(newState);
-            toggleMusicButton.setText(newState ? "Couper la musique" : "Activer la musique");
-            
-            // Relancer la musique si elle est activée
-            if (newState) {
-                soundManager.playBackgroundMusic("menu");
-            }
-        });
-        
-        // Mise à jour du checkbox qui met aussi à jour le bouton
-        musicEnabledCheckbox.setOnAction(e -> {
-            boolean selected = musicEnabledCheckbox.isSelected();
-            soundManager.setMusicEnabled(selected);
-            toggleMusicButton.setText(selected ? "Couper la musique" : "Activer la musique");
-            
-            // Relancer la musique si elle est activée
-            if (selected) {
-                soundManager.playBackgroundMusic("menu");
-            }
-        });
-        
-        // Volume des sons
-        Label soundVolumeLabel = new Label("Volume des sons:");
-        Slider soundVolumeSlider = new Slider(0, 100, userPreferences.getSoundVolume() * 100);
-        soundVolumeSlider.setShowTickLabels(true);
-        soundVolumeSlider.setShowTickMarks(true);
-        soundVolumeSlider.setMajorTickUnit(25);
-        soundVolumeSlider.setBlockIncrement(5);
-        Label soundVolumeValueLabel = new Label(String.format("%d%%", (int)(userPreferences.getSoundVolume() * 100)));
-        
-        // Mettre à jour l'étiquette et le volume en temps réel lors du changement
-        soundVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            soundVolumeValueLabel.setText(String.format("%d%%", newVal.intValue()));
-            // Appliquer le volume immédiatement
-            soundManager.setSoundVolume(newVal.doubleValue() / 100.0);
-        });
-        
-        // Jouer un son lorsque l'utilisateur relâche le slider
-        soundVolumeSlider.setOnMouseReleased(event -> {
-            // Jouer un son pour tester le volume
-            if (soundManager.isSoundEnabled()) {
-                soundManager.playSound("powerup_collect");
-            }
-        });
-        
-        // Volume de la musique
-        Label musicVolumeLabel = new Label("Volume de la musique:");
-        Slider musicVolumeSlider = new Slider(0, 100, userPreferences.getMusicVolume() * 100);
-        musicVolumeSlider.setShowTickLabels(true);
-        musicVolumeSlider.setShowTickMarks(true);
-        musicVolumeSlider.setMajorTickUnit(25);
-        musicVolumeSlider.setBlockIncrement(5);
-        Label musicVolumeValueLabel = new Label(String.format("%d%%", (int)(userPreferences.getMusicVolume() * 100)));
-        
-        // Mettre à jour l'étiquette et le volume en temps réel lors du changement
-        musicVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            musicVolumeValueLabel.setText(String.format("%d%%", newVal.intValue()));
-            // Appliquer le volume immédiatement
-            soundManager.setMusicVolume(newVal.doubleValue() / 100.0);
-        });
-        
-        // Sélection du thème
-        Label themeLabel = new Label("Thème graphique:");
-        ComboBox<String> themeComboBox = new ComboBox<>();
-        themeComboBox.getItems().addAll("Default", "Desert", "Jungle");
-        
-        // Sélectionner le thème actuel
-        ResourceManager.Theme currentTheme = resourceManager.getCurrentTheme();
-        themeComboBox.setValue(capitalizeFirstLetter(currentTheme.name().toLowerCase()));
-        
-        // Ajouter les contrôles à la grille
-        grid.add(soundEnabledCheckbox, 0, 0, 1, 1);
-        grid.add(toggleSoundButton, 1, 0, 1, 1);
-        grid.add(musicEnabledCheckbox, 0, 1, 1, 1);
-        grid.add(toggleMusicButton, 1, 1, 1, 1);
-        grid.add(soundVolumeLabel, 0, 2);
-        grid.add(soundVolumeSlider, 1, 2);
-        grid.add(soundVolumeValueLabel, 2, 2);
-        grid.add(musicVolumeLabel, 0, 3);
-        grid.add(musicVolumeSlider, 1, 3);
-        grid.add(musicVolumeValueLabel, 2, 3);
-        grid.add(themeLabel, 0, 4);
-        grid.add(themeComboBox, 1, 4, 2, 1);
-        
-        // Ajouter un séparateur
-        Separator separator = new Separator();
-        grid.add(separator, 0, 5, 3, 1);
-        
-        // Ajouter la grille au dialogue
-        dialog.getDialogPane().setContent(grid);
-        
-        // Appliquer les paramètres si OK est cliqué
-        Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            // Appliquer les paramètres
-            boolean soundEnabled = soundEnabledCheckbox.isSelected();
-            boolean musicEnabled = musicEnabledCheckbox.isSelected();
-            double soundVolume = soundVolumeSlider.getValue() / 100.0;
-            double musicVolume = musicVolumeSlider.getValue() / 100.0;
-            String selectedTheme = themeComboBox.getValue().toUpperCase();
-            
-            // Mettre à jour les préférences utilisateur
-            userPreferences.setSoundEnabled(soundEnabled);
-            userPreferences.setMusicEnabled(musicEnabled);
-            userPreferences.setSoundVolume(soundVolume);
-            userPreferences.setMusicVolume(musicVolume);
-            userPreferences.setTheme(selectedTheme);
-            
-            // Appliquer les paramètres
-            soundManager.setSoundEnabled(soundEnabled);
-            soundManager.setMusicEnabled(musicEnabled);
-            soundManager.setSoundVolume(soundVolume);
-            soundManager.setMusicVolume(musicVolume);
-            
-            // Relancer la musique si elle est activée
-            if (musicEnabled) {
-                soundManager.playBackgroundMusic("menu");
-            }
-            
-            // Appliquer le thème sélectionné
-            ResourceManager.Theme theme = ResourceManager.themeFromString(selectedTheme);
-            resourceManager.setTheme(theme);
-            soundManager.setTheme(theme);
-            
-            // Rafraîchir les sprites
-            resourceManager.clearCache();
-            
-            // Afficher un message de confirmation
-            showInfoAlert("Thème appliqué", "Le thème " + themeComboBox.getValue() + " a été appliqué. Les changements seront visibles au prochain chargement d'écran.");
+            showAlert("Erreur", "Impossible de charger l'éditeur de niveaux.", Alert.AlertType.ERROR);
         }
     }
 
@@ -463,43 +242,36 @@ public class MainMenuController implements Initializable {
         confirmAlert.setContentText("Toute progression non sauvegardée sera perdue.");
 
         if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            // Sauvegarder les préférences utilisateur avant de quitter
-            userPreferences.savePreferences();
             Platform.exit();
         }
     }
 
     /**
-     * Affiche une alerte d'erreur
+     * Affiche une alerte
      */
-    private void showErrorAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+    private void showAlert(String title, String message, Alert.AlertType type) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(content);
+        alert.setContentText(message);
         alert.showAndWait();
     }
 
     /**
-     * Affiche une alerte d'information
+     * Retourne au menu principal depuis une autre vue
      */
-    private void showInfoAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-    
-    /**
-     * Convertit la première lettre d'une chaîne en majuscule
-     * @param str La chaîne à convertir
-     * @return La chaîne avec la première lettre en majuscule
-     */
-    private String capitalizeFirstLetter(String str) {
-        if (str == null || str.isEmpty()) {
-            return str;
-        }
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    public void returnToMenu() {
+        // Réinitialiser l'état du menu
+        isInitialized = false;
+        
+        // Arrêter toute musique en cours
+        soundManager.stopBackgroundMusic();
+        
+        // Réinitialiser les composants
+        initializeComponents();
+        setupBackground();
+        startMenuMusic();
+        
+        isInitialized = true;
     }
 }

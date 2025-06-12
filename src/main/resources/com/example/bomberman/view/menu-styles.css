@@ -21,17 +21,15 @@
 
 /* Conteneur principal */
 .main-menu {
-    -fx-background-color: rgba(26, 26, 46, 0.85);
-    -fx-background-radius: 15px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 15, 0, 0, 0);
+    -fx-background-color: rgba(0, 0, 0, 0.5);
 }
 
 /* Titre principal */
 .main-title {
-    -fx-text-fill: -fx-accent-color;
-    -fx-font-size: 48px;
+    -fx-font-size: 40px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(255,87,34,0.6), 15, 0, 0, 0);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
 }
 
 /* Options du menu */
@@ -116,10 +114,9 @@
 
 /* Informations de contrôle */
 .controls-info {
-    -fx-text-fill: -fx-text-secondary-color;
-    -fx-background-color: rgba(0,0,0,0.3);
-    -fx-padding: 10px 15px;
-    -fx-background-radius: 5px;
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 0);
 }
 
 /* Animation du titre */
@@ -182,4 +179,26 @@
 
 .dialog-pane .button.cancel-button:hover {
     -fx-background-color: rgba(255,255,255,0.3);
+}
+
+.image-button {
+    -fx-background-color: transparent;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0, 0, 0);
+}
+
+.image-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-border-color: white;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.image-button:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
 } 

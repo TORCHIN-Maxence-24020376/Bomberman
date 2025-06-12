@@ -1,76 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.control.Button?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.bomberman.controller.MainMenuController"
-      fx:id="mainContainer" styleClass="main-menu">
+<StackPane fx:id="rootPane" prefHeight="600" prefWidth="800" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bomberman.controller.MainMenuController">
 
-    <padding>
-        <Insets top="50" bottom="50" left="50" right="50" />
-    </padding>
+    <!-- Image de fond -->
+    <ImageView fitHeight="600" fitWidth="800" preserveRatio="false">
+        <Image url="@../Images/coocked_question_mark.png" />
+    </ImageView>
 
-    <top>
-        <!-- Titre -->
-        <VBox alignment="CENTER" spacing="10">
-            <Label text="SUPER BOMBERMAN" fx:id="titleLabel" styleClass="main-title">
-                <font>
-                    <Font name="System Bold" size="36.0" />
-                </font>
-            </Label>
+    <!-- Contenu du menu -->
+    <VBox alignment="BOTTOM_CENTER" spacing="20" styleClass="main-menu">
+        <padding>
+            <Insets bottom="30" left="50" right="50" top="20" />
+        </padding>
 
-            <Label text="Version Améliorée" styleClass="subtitle">
-                <font>
-                    <Font size="16.0" />
-                </font>
-            </Label>
-        </VBox>
-    </top>
+        <!-- Spacer pour pousser les boutons vers le bas -->
+        <Region VBox.vgrow="ALWAYS" />
 
-    <center>
-        <!-- Menu Options -->
-        <VBox fx:id="menuOptions" alignment="CENTER" spacing="25">
-            <Button fx:id="playButton" text="JOUER" prefWidth="200" prefHeight="40"
-                    styleClass="primary-button" onAction="#startNewGame">
-                <font>
-                    <Font name="System Bold" size="16.0" />
-                </font>
-            </Button>
-            
-            <Button fx:id="botGameButton" text="VS IA" prefWidth="200" prefHeight="40"
-                    styleClass="primary-button" onAction="#startBotGame">
-                <font>
-                    <Font name="System Bold" size="16.0" />
-                </font>
-            </Button>
+        <!-- Boutons du menu avec images -->
+        <!-- Bouton Jouer -->
+        <Button fx:id="playButton" styleClass="image-button">
+            <graphic>
+                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
+                    <Image url="@../Images/jouer.png" />
+                </ImageView>
+            </graphic>
+        </Button>
 
-            <Button fx:id="levelEditorButton" text="Éditeur de Niveaux" prefWidth="200" prefHeight="35"
-                    styleClass="secondary-button" onAction="#openLevelEditor" />
+        <!-- Bouton Éditeur de Niveaux -->
+        <Button fx:id="levelEditorButton" styleClass="image-button">
+            <graphic>
+                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
+                    <Image url="@../Images/editeur.png" />
+                </ImageView>
+            </graphic>
+         <font>
+            <Font size="1.0" />
+         </font>
+        </Button>
 
-            <Button fx:id="settingsButton" text="Paramètres" prefWidth="200" prefHeight="35"
-                    styleClass="secondary-button" onAction="#openSettings" />
+        <!-- Bouton Paramètres -->
+        <Button fx:id="settingsButton" styleClass="image-button">
+            <graphic>
+                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
+                    <Image url="@../Images/parametre.png" />
+                </ImageView>
+            </graphic>
+        </Button>
 
-            <Button fx:id="quitButton" text="Quitter" prefWidth="200" prefHeight="35"
-                    styleClass="danger-button" onAction="#quitGame" />
-        </VBox>
-    </center>
-
-    <bottom>
-        <!-- Informations -->
-        <VBox alignment="CENTER" spacing="10">
-            <Label text="Contrôles: Joueur 1 (ZQSD + A + E) | Joueur 2 (Flèches + Espace + Ctrl)"
-                   styleClass="controls-info">
-                <font>
-                    <Font size="12.0" />
-                </font>
-            </Label>
-        </VBox>
-    </bottom>
-
-</BorderPane>
+        <!-- Bouton Quitter -->
+        <Button fx:id="quitButton" styleClass="image-button">
+            <graphic>
+                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
+                    <Image url="@../Images/quitter.png" />
+                </ImageView>
+            </graphic>
+        </Button>
+    </VBox>
+</StackPane>

@@ -431,6 +431,22 @@ public class SoundManager {
         resourceManager.setTheme(theme);
     }
 
+    /**
+     * Arrête tous les sons en cours
+     */
+    public void stopAllSounds() {
+        if (javafxMediaAvailable) {
+            try {
+                Class<?> mediaPlayerClass = Class.forName("javafx.scene.media.MediaPlayer");
+                for (Object player : soundPlayers.values()) {
+                    mediaPlayerClass.getMethod("stop").invoke(player);
+                }
+            } catch (Exception e) {
+                System.err.println("Erreur lors de l'arrêt des sons: " + e.getMessage());
+            }
+        }
+    }
+
     // Getters
     public boolean isSoundEnabled() { return soundEnabled; }
     public boolean isMusicEnabled() { return musicEnabled; }

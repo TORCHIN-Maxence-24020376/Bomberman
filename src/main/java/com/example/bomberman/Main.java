@@ -1,6 +1,4 @@
 package com.example.bomberman;
-import com.example.bomberman.service.SoundManager;
-import com.example.bomberman.service.UserPreferences;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -17,20 +15,13 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         try {
-            // Initialiser les gestionnaires
-            SoundManager soundManager = SoundManager.getInstance();
-            UserPreferences userPreferences = UserPreferences.getInstance();
-            
-            // Appliquer les préférences utilisateur
-            userPreferences.applyPreferences();
-
             // Essayer de charger le menu principal d'abord
             FXMLLoader menuLoader = null;
             Scene scene = null;
 
             try {
                 menuLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/menu-view.fxml"));
-                scene = new Scene(menuLoader.load(), 1000, 900);
+                scene = new Scene(menuLoader.load(), 800, 600);
                 System.out.println("Menu principal chargé avec succès !");
             } catch (Exception menuError) {
                 System.out.println("Impossible de charger le menu, chargement du jeu direct...");
@@ -57,36 +48,17 @@ public class Main extends Application {
             primaryStage.setTitle("Super Bomberman");
             primaryStage.setScene(scene);
             primaryStage.setResizable(true);
-            primaryStage.setMinWidth(1000);
-            primaryStage.setMinHeight(900);
+            primaryStage.setMinWidth(800);
+            primaryStage.setMinHeight(600);
 
             // Gestionnaire de fermeture propre
             primaryStage.setOnCloseRequest(event -> {
-                // Sauvegarder les préférences utilisateur
-                userPreferences.savePreferences();
-                
-                // Arrêter la musique
-                soundManager.stopBackgroundMusic();
-
-                // Quitter l'application
                 Platform.exit();
                 System.exit(0);
             });
 
             // Afficher la fenêtre
             primaryStage.show();
-
-            // Démarrer la musique du menu après l'affichage de la fenêtre si activée
-            if (userPreferences.isMusicEnabled()) {
-                Platform.runLater(() -> {
-                    try {
-                        Thread.sleep(500); // Attendre 500ms pour que la fenêtre soit bien initialisée
-                        soundManager.playBackgroundMusic("menu");
-                    } catch (Exception e) {
-                        System.err.println("Erreur lors du démarrage de la musique: " + e.getMessage());
-                    }
-                });
-            }
 
             System.out.println("Super Bomberman lancé avec succès !");
 
@@ -108,13 +80,6 @@ public class Main extends Application {
     @Override
     public void stop() throws Exception {
         super.stop();
-
-        // Sauvegarder les préférences utilisateur
-        UserPreferences.getInstance().savePreferences();
-        
-        // Arrêter la musique
-        SoundManager.getInstance().stopBackgroundMusic();
-
         System.out.println("Application fermée proprement.");
     }
 

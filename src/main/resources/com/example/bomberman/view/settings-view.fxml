@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane styleClass="settings-view" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bomberman.controller.SettingsController">
+   <center>
+      <VBox alignment="TOP_CENTER" spacing="15.0" styleClass="settings-content">
+         <children>
+            <Label styleClass="view-title" text="Paramètres du jeu">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <Separator />
+            
+            <VBox spacing="10.0" styleClass="settings-section">
+               <children>
+                  <Label styleClass="section-title" text="Paramètres Audio">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  
+                  <CheckBox fx:id="soundEnabledCheck" text="Activer les effets sonores" selected="true" />
+                  <CheckBox fx:id="musicEnabledCheck" text="Activer la musique" selected="true" />
+                  
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <Label prefWidth="120.0" text="Volume Effets:" />
+                        <Slider fx:id="effectsVolumeSlider" blockIncrement="5.0" majorTickUnit="20.0" max="100.0" minorTickCount="1" prefWidth="250.0" showTickLabels="true" showTickMarks="true" value="75.0" />
+                        <Label fx:id="effectsVolumeLabel" prefWidth="50.0" text="75%" />
+                     </children>
+                  </HBox>
+                  
+                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+                     <children>
+                        <Label prefWidth="120.0" text="Volume Musique:" />
+                        <Slider fx:id="musicVolumeSlider" blockIncrement="5.0" majorTickUnit="20.0" max="100.0" minorTickCount="1" prefWidth="250.0" showTickLabels="true" showTickMarks="true" value="50.0" />
+                        <Label fx:id="musicVolumeLabel" prefWidth="50.0" text="50%" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+            
+            <Separator />
+            
+            <HBox alignment="CENTER" spacing="20.0">
+               <children>
+                  <Button fx:id="saveButton" mnemonicParsing="false" text="Sauvegarder" />
+                  <Button fx:id="cancelButton" mnemonicParsing="false" text="Annuler" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </VBox>
+   </center>
+</BorderPane> 

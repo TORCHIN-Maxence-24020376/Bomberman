@@ -995,141 +995,32 @@ public class LevelEditorController implements Initializable {
                 // Sauvegarder l'état temporaire
                 saveTemporaryState();
                 
-                // Essayer de charger le menu principal
-                tryLoadMainMenu();
+                // Charger le menu principal
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
+                Parent menuRoot = loader.load();
+                
+                // Obtenir le contrôleur du menu et réinitialiser son état
+                MainMenuController menuController = loader.getController();
+                menuController.returnToMenu();
+                
+                // Changer de scène
+                Stage stage = (Stage) returnButton.getScene().getWindow();
+                Scene menuScene = new Scene(menuRoot, 1000, 700);
+                
+                // Charger le CSS
+                URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                if (cssResource != null) {
+                    menuScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+                
+                stage.setScene(menuScene);
+                stage.setTitle("Super Bomberman - Menu Principal");
+                
             } catch (Exception e) {
                 e.printStackTrace();
                 showAlert("Erreur", "Impossible de charger le menu principal: " + e.getMessage(), Alert.AlertType.ERROR);
             }
         }
-    }
-    
-    /**
-     * Essaie différentes méthodes pour charger le menu principal
-     */
-    private void tryLoadMainMenu() {
-        // Méthode 1: Essayer de charger menu-view.fxml
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/menu-view.fxml"));
-            loadMenuScene(loader);
-            return;
-        } catch (Exception e1) {
-            System.err.println("Échec du chargement avec menu-view.fxml: " + e1.getMessage());
-            e1.printStackTrace();
-        }
-        
-        // Méthode 2: Essayer avec main-menu-view.fxml
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/main-menu-view.fxml"));
-            loadMenuScene(loader);
-            return;
-        } catch (Exception e2) {
-            System.err.println("Échec du chargement avec main-menu-view.fxml: " + e2.getMessage());
-            e2.printStackTrace();
-        }
-        
-        // Méthode 3: Essayer avec un chemin absolu
-        try {
-            URL resource = Main.class.getResource("/com/example/bomberman/view/menu-view.fxml");
-            if (resource != null) {
-                FXMLLoader loader = new FXMLLoader(resource);
-                loadMenuScene(loader);
-                return;
-            }
-        } catch (Exception e3) {
-            System.err.println("Échec du chargement avec chemin absolu: " + e3.getMessage());
-            e3.printStackTrace();
-        }
-        
-        // Si toutes les méthodes échouent, créer une scène vide avec un bouton pour quitter
-        createEmergencyExitScene();
-    }
-    
-    /**
-     * Charge la scène du menu à partir du loader
-     */
-    private void loadMenuScene(FXMLLoader loader) throws IOException {
-        Parent root = loader.load();
-        Scene scene = new Scene(root, 1000, 900);
-        
-        // Appliquer le CSS principal
-        scene.getStylesheets().clear();
-        try {
-            scene.getStylesheets().add(getClass().getResource("/com/example/bomberman/view/styles.css").toExternalForm());
-        } catch (Exception cssEx) {
-            System.err.println("Erreur lors du chargement du CSS: " + cssEx.getMessage());
-        }
-        
-        // Afficher la scène
-        Stage stage = (Stage) editorCanvas.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setTitle("Super Bomberman - Menu Principal");
-        stage.setMinWidth(1000);
-        stage.setMinHeight(900);
-        
-        // Jouer la musique du menu si activée
-        if (userPreferences.isMusicEnabled()) {
-            soundManager.playBackgroundMusic("menu");
-        }
-    }
-    
-    /**
-     * Crée une scène d'urgence en cas d'échec de chargement du menu
-     */
-    private void createEmergencyExitScene() {
-        // Créer une interface minimaliste
-        BorderPane pane = new BorderPane();
-        pane.setStyle("-fx-background-color: #333; -fx-padding: 20px;");
-        
-        VBox content = new VBox(20);
-        content.setAlignment(Pos.CENTER);
-        
-        Label titleLabel = new Label("Erreur de navigation");
-        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
-        
-        Label messageLabel = new Label("Impossible de charger le menu principal.");
-        messageLabel.setStyle("-fx-text-fill: #ccc; -fx-font-size: 16px;");
-        
-        Button exitButton = new Button("Quitter le jeu");
-        exitButton.setStyle(
-            "-fx-background-color: #e74c3c; -fx-text-fill: white; " +
-            "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-size: 14px;"
-        );
-        exitButton.setOnAction(e -> {
-            Stage stage = (Stage) exitButton.getScene().getWindow();
-            stage.close();
-            Platform.exit();
-        });
-        
-        Button restartButton = new Button("Redémarrer l'application");
-        restartButton.setStyle(
-            "-fx-background-color: #3498db; -fx-text-fill: white; " +
-            "-fx-font-weight: bold; -fx-padding: 10 20; -fx-font-size: 14px;"
-        );
-        restartButton.setOnAction(e -> {
-            try {
-                // Redémarrer l'application
-                Stage stage = (Stage) restartButton.getScene().getWindow();
-                stage.close();
-                
-                // Relancer l'application
-                new Main().start(new Stage());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                System.exit(0);
-            }
-        });
-        
-        content.getChildren().addAll(titleLabel, messageLabel, new Separator(), restartButton, exitButton);
-        pane.setCenter(content);
-        
-        // Afficher la scène
-        Scene scene = new Scene(pane, 1000, 900);
-        Stage stage = (Stage) editorCanvas.getScene().getWindow();
-        stage.setScene(scene);
-        stage.setTitle("Super Bomberman - Erreur");
-        stage.setMinWidth(1000);
-        stage.setMinHeight(900);
     }
 
     /**
