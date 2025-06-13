@@ -2,6 +2,7 @@ package com.example.bomberman.controller;
 
 import com.example.bomberman.service.SoundManager;
 import com.example.bomberman.service.UserPreferences;
+import com.example.bomberman.utils.ResourceManager;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -18,15 +19,18 @@ public class SettingsController implements Initializable {
     @FXML private Label musicVolumeLabel;
     @FXML private CheckBox soundEnabledCheck;
     @FXML private CheckBox musicEnabledCheck;
+    @FXML private ComboBox<String> themeComboBox;
     @FXML private Button saveButton;
     @FXML private Button cancelButton;
 
     private SoundManager soundManager;
     private UserPreferences userPreferences;
+    private ResourceManager resourceManager;
     private boolean initialSoundEnabled;
     private boolean initialMusicEnabled;
     private double initialSoundVolume;
     private double initialMusicVolume;
+    private String initialTheme;
     
     // Pour éviter de jouer le son trop fréquemment
     private long lastSoundPlayTime = 0;
@@ -39,12 +43,14 @@ public class SettingsController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         soundManager = SoundManager.getInstance();
         userPreferences = UserPreferences.getInstance();
+        resourceManager = ResourceManager.getInstance();
         
         // Sauvegarder les paramètres initiaux
         saveInitialSettings();
         
         setupVolumeSliders();
         setupCheckBoxes();
+        setupThemeComboBox();
         setupButtons();
         loadCurrentSettings();
     }
@@ -54,6 +60,7 @@ public class SettingsController implements Initializable {
         initialMusicEnabled = soundManager.isMusicEnabled();
         initialSoundVolume = soundManager.getSoundVolume();
         initialMusicVolume = soundManager.getMusicVolume();
+        initialTheme = userPreferences.getTheme();
     }
 
     private void setupVolumeSliders() {
@@ -103,6 +110,37 @@ public class SettingsController implements Initializable {
         });
     }
 
+    private void setupThemeComboBox() {
+        // Ajouter les thèmes disponibles
+        themeComboBox.getItems().addAll("Défaut", "Désert", "Jungle");
+        
+        // Gérer le changement de thème
+        themeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !isInitializing) {
+                ResourceManager.Theme theme;
+                switch (newVal) {
+                    case "Désert":
+                        theme = ResourceManager.Theme.DESERT;
+                        break;
+                    case "Jungle":
+                        theme = ResourceManager.Theme.JUNGLE;
+                        break;
+                    default:
+                        theme = ResourceManager.Theme.DEFAULT;
+                }
+                
+                // Appliquer le thème
+                resourceManager.setTheme(theme);
+                userPreferences.setTheme(theme.name());
+                
+                // Jouer un son pour indiquer le changement
+                if (soundManager.isSoundEnabled()) {
+                    soundManager.playSound("powerup_collect");
+                }
+            }
+        });
+    }
+
     private void setupButtons() {
         saveButton.setOnAction(e -> handleSave());
         cancelButton.setOnAction(e -> handleCancel());
@@ -114,12 +152,25 @@ public class SettingsController implements Initializable {
         boolean musicEnabled = userPreferences.isMusicEnabled();
         double soundVolume = userPreferences.getSoundVolume();
         double musicVolume = userPreferences.getMusicVolume();
+        String currentTheme = userPreferences.getTheme();
 
         // Appliquer les paramètres aux contrôles
         soundEnabledCheck.setSelected(soundEnabled);
         musicEnabledCheck.setSelected(musicEnabled);
         effectsVolumeSlider.setValue(soundVolume * 100);
         musicVolumeSlider.setValue(musicVolume * 100);
+        
+        // Sélectionner le thème actuel
+        switch (currentTheme) {
+            case "DESERT":
+                themeComboBox.setValue("Désert");
+                break;
+            case "JUNGLE":
+                themeComboBox.setValue("Jungle");
+                break;
+            default:
+                themeComboBox.setValue("Défaut");
+        }
 
         // Appliquer les paramètres au SoundManager
         soundManager.setSoundEnabled(soundEnabled);
@@ -145,11 +196,16 @@ public class SettingsController implements Initializable {
         soundManager.setSoundVolume(initialSoundVolume);
         soundManager.setMusicVolume(initialMusicVolume);
         
+        // Restaurer le thème initial
+        ResourceManager.Theme initialThemeEnum = ResourceManager.themeFromString(initialTheme);
+        resourceManager.setTheme(initialThemeEnum);
+        
         // Restaurer les préférences utilisateur
         userPreferences.setSoundEnabled(initialSoundEnabled);
         userPreferences.setMusicEnabled(initialMusicEnabled);
         userPreferences.setSoundVolume(initialSoundVolume);
         userPreferences.setMusicVolume(initialMusicVolume);
+        userPreferences.setTheme(initialTheme);
         userPreferences.applyPreferences();
         
         closeWindow();
