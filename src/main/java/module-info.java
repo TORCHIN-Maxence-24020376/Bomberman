@@ -3,6 +3,7 @@ module com.example.bomberman {
     requires javafx.fxml;
     requires java.desktop;
     requires javafx.media;
+    requires javafx.graphics;
 
     opens com.example.bomberman to javafx.fxml;
     opens com.example.bomberman.utils to javafx.fxml;

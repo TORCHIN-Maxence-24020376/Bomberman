@@ -1007,8 +1007,8 @@ public class LevelEditorController implements Initializable {
                 Stage stage = (Stage) returnButton.getScene().getWindow();
                 Scene menuScene = new Scene(menuRoot, 1000, 700);
                 
-                // Charger le CSS
-                URL cssResource = getClass().getResource("/com/example/bomberman/style.css");
+                // Charger le CSS du menu
+                URL cssResource = getClass().getResource("/com/example/bomberman/view/menu-styles.css");
                 if (cssResource != null) {
                     menuScene.getStylesheets().add(cssResource.toExternalForm());
                 }

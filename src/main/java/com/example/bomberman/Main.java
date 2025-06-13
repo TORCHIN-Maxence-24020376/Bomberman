@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Classe principale de l'application Bomberman
@@ -22,6 +23,14 @@ public class Main extends Application {
             try {
                 menuLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/menu-view.fxml"));
                 scene = new Scene(menuLoader.load(), 800, 600);
+                
+                // Charger le CSS du menu
+                URL cssResource = getClass().getResource("/com/example/bomberman/view/menu-styles.css");
+                if (cssResource != null) {
+                    scene.getStylesheets().add(cssResource.toExternalForm());
+                    System.out.println("Styles CSS du menu chargés !");
+                }
+                
                 System.out.println("Menu principal chargé avec succès !");
             } catch (Exception menuError) {
                 System.out.println("Impossible de charger le menu, chargement du jeu direct...");
@@ -30,18 +39,15 @@ public class Main extends Application {
                 // Fallback sur le jeu original
                 FXMLLoader gameLoader = new FXMLLoader(Main.class.getResource("/com/example/bomberman/view/game-view.fxml"));
                 scene = new Scene(gameLoader.load(), 1000, 900);
-                System.out.println("Jeu direct chargé !");
-            }
-
-            // Ajouter le CSS si disponible
-            try {
-                var cssResource = getClass().getResource("/com/example/bomberman/view/styles.css");
+                
+                // Charger le CSS du jeu
+                URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
                 if (cssResource != null) {
                     scene.getStylesheets().add(cssResource.toExternalForm());
-                    System.out.println("Styles CSS chargés !");
+                    System.out.println("Styles CSS du jeu chargés !");
                 }
-            } catch (Exception cssError) {
-                System.out.println("CSS non trouvé, utilisation du style par défaut");
+                
+                System.out.println("Jeu direct chargé !");
             }
 
             // Configuration de la fenêtre principale

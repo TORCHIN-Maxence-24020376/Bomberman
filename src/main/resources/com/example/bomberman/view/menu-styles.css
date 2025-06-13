@@ -2,126 +2,74 @@
 
 /* Couleurs principales */
 * {
-    -fx-primary-color: #1A1A2E;
-    -fx-secondary-color: #16213E;
-    -fx-accent-color: #FF5722;
-    -fx-focus-color: #FF8A65;
-    -fx-text-color: #E9E9E9;
-    -fx-text-secondary-color: #B0B0B0;
+    -fx-primary-color: #000000;          /* Fond noir */
+    -fx-secondary-color: #101010;        /* Gris très foncé */
+    -fx-accent-color: #FF6600;           /* Orange bomberman */
+    -fx-focus-color: #FFCC00;            /* Jaune pour focus */
+    -fx-success-color: #00CC00;          /* Vert */
+    -fx-info-color: #3399FF;             /* Bleu */
+    -fx-warning-color: #FFCC00;          /* Jaune */
+    -fx-danger-color: #FF0000;           /* Rouge */
+    -fx-text-color: #FFFFFF;             /* Texte blanc */
+    -fx-text-secondary-color: #CCCCCC;   /* Gris clair */
 }
 
 /* Style général */
 .root {
     -fx-background-color: -fx-primary-color;
-    -fx-background-image: url("../Images/default/background.png");
-    -fx-background-repeat: stretch;
+    -fx-font-family: 'Courier New', monospace; /* Police pixelisée/rétro */
+}
+
+/* Classe spécifique pour l'arrière-plan du menu */
+.menu-background {
+    -fx-background-image: url("../Images/coocked_question_mark.png");
+    -fx-background-repeat: no-repeat;
     -fx-background-size: cover;
-    -fx-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -fx-background-position: center center;
 }
 
 /* Conteneur principal */
 .main-menu {
-    -fx-background-color: rgba(0, 0, 0, 0.5);
+    -fx-background-color: rgba(0, 0, 0, 0.6);
+    -fx-padding: 20px;
 }
 
 /* Titre principal */
 .main-title {
-    -fx-font-size: 40px;
+    -fx-font-size: 48px;
     -fx-font-weight: bold;
-    -fx-text-fill: white;
+    -fx-text-fill: -fx-accent-color;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
 }
 
-/* Options du menu */
-#menuOptions {
-    -fx-spacing: 25px;
-    -fx-padding: 30px;
-}
-
-/* Boutons */
-.primary-button {
-    -fx-background-color: -fx-accent-color;
-    -fx-text-fill: white;
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-    -fx-padding: 12px 25px;
-    -fx-background-radius: 5px;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 0, 0);
-    -fx-transition: all 0.3s ease;
-}
-
-.primary-button:hover {
-    -fx-background-color: derive(-fx-accent-color, 10%);
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 12, 0, 0, 0);
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
-}
-
-.primary-button:pressed {
-    -fx-background-color: derive(-fx-accent-color, -10%);
-    -fx-scale-x: 0.95;
-    -fx-scale-y: 0.95;
-}
-
-.secondary-button {
-    -fx-background-color: rgba(255,255,255,0.1);
+/* Boutons du menu style arcade */
+.menu-button {
+    -fx-background-color: transparent;
     -fx-text-fill: -fx-text-color;
-    -fx-font-size: 16px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 5px;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-padding: 15px 30px;
+    -fx-border-color: -fx-accent-color;
+    -fx-border-width: 2px;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 0);
-    -fx-transition: all 0.3s ease;
+    -fx-min-width: 200px;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0, 0, 0);
 }
 
-.secondary-button:hover {
-    -fx-background-color: rgba(255,255,255,0.2);
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 0, 0);
-    -fx-scale-x: 1.03;
-    -fx-scale-y: 1.03;
+.menu-button:hover {
+    -fx-background-color: rgba(255, 102, 0, 0.3);
+    -fx-text-fill: -fx-warning-color;
+    -fx-border-color: -fx-warning-color;
+    -fx-border-width: 3px;
 }
 
-.secondary-button:pressed {
-    -fx-background-color: rgba(255,255,255,0.15);
-    -fx-scale-x: 0.97;
-    -fx-scale-y: 0.97;
-}
-
-.danger-button {
-    -fx-background-color: #F44336;
-    -fx-text-fill: white;
-    -fx-font-size: 16px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 5px;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 0);
-    -fx-transition: all 0.3s ease;
-}
-
-.danger-button:hover {
-    -fx-background-color: #E53935;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 8, 0, 0, 0);
-    -fx-scale-x: 1.03;
-    -fx-scale-y: 1.03;
-}
-
-.danger-button:pressed {
-    -fx-background-color: #D32F2F;
-    -fx-scale-x: 0.97;
-    -fx-scale-y: 0.97;
-}
-
-/* Informations de contrôle */
-.controls-info {
-    -fx-font-size: 12px;
-    -fx-text-fill: white;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 0);
-}
-
-/* Animation du titre */
-#titleLabel {
-    -fx-transition: all 0.5s ease;
+.menu-button:pressed {
+    -fx-background-color: rgba(255, 102, 0, 0.5);
+    -fx-border-color: -fx-text-color;
+    -fx-text-fill: -fx-text-color;
 }
 
 /* Boîtes de dialogue */
@@ -133,7 +81,7 @@
 .dialog-pane .header-panel {
     -fx-background-color: -fx-secondary-color;
     -fx-padding: 15px;
-    -fx-background-radius: 5px 5px 0 0;
+    -fx-background-radius: 0;
 }
 
 .dialog-pane .header-panel .label {
@@ -143,7 +91,7 @@
 }
 
 .dialog-pane .content {
-    -fx-background-color: derive(-fx-primary-color, 5%);
+    -fx-background-color: -fx-secondary-color;
     -fx-padding: 15px;
 }
 
@@ -158,10 +106,10 @@
 
 .dialog-pane .button {
     -fx-background-color: -fx-accent-color;
-    -fx-text-fill: white;
+    -fx-text-fill: -fx-text-color;
     -fx-font-weight: bold;
     -fx-padding: 8px 15px;
-    -fx-background-radius: 3px;
+    -fx-background-radius: 0;
     -fx-cursor: hand;
 }
 
@@ -179,6 +127,92 @@
 
 .dialog-pane .button.cancel-button:hover {
     -fx-background-color: rgba(255,255,255,0.3);
+}
+
+/* Styles pour les paramètres */
+.settings-view {
+    -fx-background-color: -fx-primary-color;
+}
+
+.settings-content {
+    -fx-background-color: -fx-secondary-color;
+    -fx-padding: 20px;
+}
+
+.settings-text {
+    -fx-text-fill: -fx-text-color;
+}
+
+.view-title {
+    -fx-text-fill: -fx-accent-color;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.section-title {
+    -fx-text-fill: -fx-warning-color;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.settings-section {
+    -fx-background-color: rgba(0, 0, 0, 0.3);
+    -fx-padding: 15px;
+    -fx-spacing: 10px;
+}
+
+/* Contrôles de paramètres */
+.check-box {
+    -fx-text-fill: -fx-text-color;
+}
+
+.check-box .box {
+    -fx-background-color: -fx-secondary-color;
+    -fx-border-color: -fx-accent-color;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: -fx-accent-color;
+}
+
+.slider .track {
+    -fx-background-color: -fx-secondary-color;
+    -fx-border-color: -fx-accent-color;
+}
+
+.slider .thumb {
+    -fx-background-color: -fx-accent-color;
+}
+
+/* Boutons standards */
+.button {
+    -fx-background-color: -fx-accent-color;
+    -fx-text-fill: -fx-text-color;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 15px;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: derive(-fx-accent-color, 10%);
+}
+
+.button:pressed {
+    -fx-background-color: derive(-fx-accent-color, -10%);
+}
+
+/* Informations de contrôle */
+.controls-info {
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 0);
+}
+
+/* Animation du titre */
+#titleLabel {
+    -fx-transition: all 0.5s ease;
 }
 
 .image-button {

@@ -2,64 +2,55 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
 <StackPane fx:id="rootPane" prefHeight="600" prefWidth="800" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.bomberman.controller.MainMenuController">
 
-    <!-- Image de fond -->
-    <ImageView fitHeight="600" fitWidth="800" preserveRatio="false">
-        <Image url="@../Images/coocked_question_mark.png" />
-    </ImageView>
-
     <!-- Contenu du menu -->
-    <VBox alignment="BOTTOM_CENTER" spacing="20" styleClass="main-menu">
+    <VBox alignment="CENTER" spacing="20" styleClass="main-menu">
         <padding>
             <Insets bottom="30" left="50" right="50" top="20" />
         </padding>
 
-        <!-- Spacer pour pousser les boutons vers le bas -->
+        <!-- Titre du jeu -->
+        <Label text="BOMBERMAN" styleClass="main-title">
+            <font>
+                <Font name="System Bold" size="48.0" />
+            </font>
+        </Label>
+
         <Region VBox.vgrow="ALWAYS" />
 
-        <!-- Boutons du menu avec images -->
-        <!-- Bouton Jouer -->
-        <Button fx:id="playButton" styleClass="image-button">
-            <graphic>
-                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
-                    <Image url="@../Images/jouer.png" />
-                </ImageView>
-            </graphic>
+        <!-- Boutons du menu en texte plat -->
+        <Button fx:id="playButton" text="JOUER" styleClass="menu-button">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
         </Button>
 
-        <!-- Bouton Éditeur de Niveaux -->
-        <Button fx:id="levelEditorButton" styleClass="image-button">
-            <graphic>
-                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
-                    <Image url="@../Images/editeur.png" />
-                </ImageView>
-            </graphic>
-         <font>
-            <Font size="1.0" />
-         </font>
+        <Button fx:id="vsBotButton" text="VS BOT" styleClass="menu-button">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
         </Button>
 
-        <!-- Bouton Paramètres -->
-        <Button fx:id="settingsButton" styleClass="image-button">
-            <graphic>
-                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
-                    <Image url="@../Images/parametre.png" />
-                </ImageView>
-            </graphic>
+        <Button fx:id="levelEditorButton" text="ÉDITEUR" styleClass="menu-button">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
         </Button>
 
-        <!-- Bouton Quitter -->
-        <Button fx:id="quitButton" styleClass="image-button">
-            <graphic>
-                <ImageView fitHeight="80.0" fitWidth="80.0" preserveRatio="true" styleClass="image-view">
-                    <Image url="@../Images/quitter.png" />
-                </ImageView>
-            </graphic>
+        <Button fx:id="settingsButton" text="PARAMÈTRES" styleClass="menu-button">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
+        </Button>
+
+        <Button fx:id="quitButton" text="QUITTER" styleClass="menu-button">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
         </Button>
     </VBox>
 </StackPane>

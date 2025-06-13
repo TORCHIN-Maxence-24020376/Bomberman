@@ -1,0 +1,8 @@
+module:com.example.bomberman
+com.example.bomberman
+com.example.bomberman.controller
+com.example.bomberman.enums
+com.example.bomberman.models.entities
+com.example.bomberman.models.world
+com.example.bomberman.service
+com.example.bomberman.utils

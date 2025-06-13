@@ -73,10 +73,14 @@ public class Game {
 
         pressedKeys.add(key);
 
+        // Vérifier si le joueur 2 est un bot
+        boolean isPlayer2Bot = player2 instanceof com.example.bomberman.models.entities.BotPlayer;
+
         // Gestion des bombes avec contrôles fixes
         if (key == P1_BOMB && player1.isAlive()) {
             placeBomb(player1);
-        } else if (key == P2_BOMB && player2.isAlive()) {
+        } else if (key == P2_BOMB && player2.isAlive() && !isPlayer2Bot) {
+            // Ignorer les commandes du joueur 2 si c'est un bot
             placeBomb(player2);
         }
         
@@ -84,8 +88,8 @@ public class Game {
         if (key == P1_SPECIAL && player1.isAlive()) {
             // Capacité spéciale du joueur 1
             useSpecialAbility(player1);
-        } else if (key == P2_SPECIAL && player2.isAlive()) {
-            // Capacité spéciale du joueur 2
+        } else if (key == P2_SPECIAL && player2.isAlive() && !isPlayer2Bot) {
+            // Ignorer les commandes du joueur 2 si c'est un bot
             useSpecialAbility(player2);
         }
     }
@@ -181,8 +185,27 @@ public class Game {
         player1.update();
         player2.update();
         
-        // Traiter les mouvements en continu
-        processMovement();
+        // Vérifier si le joueur 2 est un BotPlayer
+        if (player2 instanceof com.example.bomberman.models.entities.BotPlayer) {
+            // Traiter le bot
+            com.example.bomberman.models.entities.BotPlayer botPlayer = 
+                (com.example.bomberman.models.entities.BotPlayer) player2;
+            botPlayer.updateBot(board, player1);
+            
+            // Déplacer le bot selon sa stratégie
+            botPlayer.moveInCurrentDirection(board);
+            
+            // Vérifier si le bot veut poser une bombe
+            if (botPlayer.wantToPlaceBomb()) {
+                placeBomb(botPlayer);
+            }
+            
+            // Traiter uniquement les mouvements du joueur 1
+            processPlayer1Movement();
+        } else {
+            // Traiter les mouvements des deux joueurs normalement
+            processMovement();
+        }
 
         // Mettre à jour les bombes
         Iterator<Bomb> bombIterator = bombs.iterator();
@@ -197,7 +220,7 @@ public class Game {
 
                 bombIterator.remove();
                 board.removeBomb(bomb.getX(), bomb.getY());
-
+                
                 // Rendre la bombe disponible au joueur
                 if (bomb.getPlayerId() == 1) {
                     player1.bombExploded();
@@ -209,6 +232,29 @@ public class Game {
 
         // Vérifier les conditions de victoire
         checkWinConditions();
+    }
+    
+    /**
+     * Traite uniquement les mouvements du joueur 1
+     */
+    private void processPlayer1Movement() {
+        if (!gameRunning) return;
+
+        // Joueur 1 avec contrôles fixes
+        if (player1 != null && player1.isAlive()) {
+            if (pressedKeys.contains(P1_UP)) {
+                movePlayer(player1, 0, -1);
+            }
+            if (pressedKeys.contains(P1_DOWN)) {
+                movePlayer(player1, 0, 1);
+            }
+            if (pressedKeys.contains(P1_LEFT)) {
+                movePlayer(player1, -1, 0);
+            }
+            if (pressedKeys.contains(P1_RIGHT)) {
+                movePlayer(player1, 1, 0);
+            }
+        }
     }
 
     private int handleExplosion(Bomb bomb) {
@@ -355,6 +401,38 @@ public class Game {
     public int getPlayer2Score() { return player2Score; }
     public int getBombsPlaced() { return bombsPlaced; }
     public int getWallsDestroyed() { return wallsDestroyed; }
+
+    /**
+     * Active le mode bot pour le joueur 2
+     * @param difficultyLevel Niveau de difficulté (1-3)
+     */
+    public void enableBotMode(int difficultyLevel) {
+        try {
+            // Créer une instance de BotGame
+            BotGame botGame = new BotGame(difficultyLevel);
+            
+            // Copier les propriétés importantes du BotGame vers cette instance
+            this.board = botGame.getBoard();
+            this.player1 = botGame.getPlayer1();
+            this.player2 = botGame.getPlayer2();
+            this.bombs = botGame.getBombs();
+            this.gameRunning = botGame.isGameRunning();
+            this.player1Score = botGame.getPlayer1Score();
+            this.player2Score = botGame.getPlayer2Score();
+            
+            System.out.println("Mode bot activé avec succès (difficulté: " + difficultyLevel + ")");
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'activation du mode bot: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Active le mode bot pour le joueur 2 avec difficulté moyenne
+     */
+    public void enableBotMode() {
+        enableBotMode(2); // Difficulté moyenne par défaut
+    }
 
     /**
      * Charge un niveau personnalisé à partir d'un fichier

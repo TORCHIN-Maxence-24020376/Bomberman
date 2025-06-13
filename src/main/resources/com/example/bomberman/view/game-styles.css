@@ -358,4 +358,74 @@
     -fx-font-size: 24px;
     -fx-font-weight: bold;
     -fx-text-fill: -fx-warning-color;
+}
+
+/* Styles pour la boîte de dialogue de sélection de difficulté */
+.custom-dialog {
+    -fx-background-color: #424242;
+}
+
+.custom-dialog .header-panel {
+    -fx-background-color: #303030;
+}
+
+.custom-dialog .header-panel .label {
+    -fx-text-fill: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.custom-dialog .content.label {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+.custom-dialog .button-bar {
+    -fx-background-color: #424242;
+    -fx-padding: 10px;
+}
+
+.custom-dialog .button {
+    -fx-background-radius: 3px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.easy-button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.easy-button:hover {
+    -fx-background-color: derive(#4CAF50, 10%);
+}
+
+.medium-button {
+    -fx-background-color: #FFC107;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.medium-button:hover {
+    -fx-background-color: derive(#FFC107, 10%);
+}
+
+.hard-button {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.hard-button:hover {
+    -fx-background-color: derive(#F44336, 10%);
+}
+
+.cancel-button {
+    -fx-background-color: #9E9E9E;
+    -fx-text-fill: white;
+}
+
+.cancel-button:hover {
+    -fx-background-color: derive(#9E9E9E, 10%);
 } 

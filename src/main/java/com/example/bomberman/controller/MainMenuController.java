@@ -1,21 +1,28 @@
 package com.example.bomberman.controller;
 
 import com.example.bomberman.service.SoundManager;
+import com.example.bomberman.service.UserPreferences;
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Optional;
 
 /**
  * Contrôleur simplifié pour le menu principal
@@ -23,6 +30,7 @@ import java.util.ResourceBundle;
 public class MainMenuController implements Initializable {
 
     @FXML private Button playButton;
+    @FXML private Button vsBotButton;
     @FXML private Button settingsButton;
     @FXML private Button levelEditorButton;
     @FXML private Button quitButton;
@@ -35,9 +43,15 @@ public class MainMenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         if (!isInitialized) {
             soundManager = SoundManager.getInstance();
+            
+            // Appliquer les préférences utilisateur avant de démarrer la musique
+            UserPreferences userPreferences = UserPreferences.getInstance();
+            userPreferences.applyPreferences();
+            
+            // Démarrer la musique immédiatement
+            startMenuMusic();
             initializeComponents();
             setupBackground();
-            startMenuMusic();
             isInitialized = true;
         }
     }
@@ -48,6 +62,9 @@ public class MainMenuController implements Initializable {
     private void initializeComponents() {
         // Configuration des boutons
         playButton.setOnAction(e -> startGame());
+        if (vsBotButton != null) {
+            vsBotButton.setOnAction(e -> startGameVsBot());
+        }
         settingsButton.setOnAction(e -> openSettings());
         levelEditorButton.setOnAction(e -> openLevelEditor());
         quitButton.setOnAction(e -> quitGame());
@@ -59,16 +76,15 @@ public class MainMenuController implements Initializable {
     private void setupBackground() {
         try {
             if (rootPane != null) {
-                String imagePath = "/com/example/bomberman/Images/coocked_question_mark.png";
-                URL imageUrl = getClass().getResource(imagePath);
+                // Au lieu d'utiliser setStyle, nous allons appliquer directement la classe CSS
+                // Le CSS est déjà configuré dans menu-styles.css avec l'image de fond
+                rootPane.getStyleClass().add("menu-background");
                 
-                if (imageUrl != null) {
-                    rootPane.setStyle("-fx-background-image: url('" + imagePath + "'); " +
-                                    "-fx-background-size: cover; " +
-                                    "-fx-background-position: center center;");
-                } else {
-                    System.err.println("Image non trouvée à : " + imagePath);
-                }
+                // S'assurer que le StackPane prend toute la taille disponible
+                rootPane.setPrefWidth(Double.MAX_VALUE);
+                rootPane.setPrefHeight(Double.MAX_VALUE);
+                rootPane.setMaxWidth(Double.MAX_VALUE);
+                rootPane.setMaxHeight(Double.MAX_VALUE);
             }
         } catch (Exception e) {
             System.err.println("Erreur lors de la configuration de l'arrière-plan : " + e.getMessage());
@@ -80,7 +96,7 @@ public class MainMenuController implements Initializable {
      */
     private void startMenuMusic() {
         if (soundManager.isMusicEnabled()) {
-            soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
+            soundManager.playBackgroundMusic("menu_music");
         }
     }
 
@@ -100,15 +116,10 @@ public class MainMenuController implements Initializable {
             Stage stage = (Stage) playButton.getScene().getWindow();
             Scene gameScene = new Scene(gameRoot, 800, 600);
 
-            // Charger le CSS s'il existe
-            try {
-                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
-                if (cssResource != null) {
-                    gameScene.getStylesheets().add(cssResource.toExternalForm());
-                }
-            } catch (Exception cssError) {
-                System.out.println("CSS non trouvé, continuation sans styles");
-                cssError.printStackTrace();
+            // Charger le CSS du jeu
+            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            if (cssResource != null) {
+                gameScene.getStylesheets().add(cssResource.toExternalForm());
             }
 
             stage.setScene(gameScene);
@@ -118,9 +129,113 @@ public class MainMenuController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger le jeu.\nUtilisation du jeu de base.", Alert.AlertType.WARNING);
+            launchBasicGame();
+        }
+    }
+    
+    /**
+     * Démarre une nouvelle partie contre un bot
+     */
+    @FXML
+    private void startGameVsBot() {
+        try {
+            // Afficher une boîte de dialogue pour choisir la difficulté
+            Alert difficultyDialog = new Alert(Alert.AlertType.CONFIRMATION);
+            difficultyDialog.setTitle("Choisir la difficulté");
+            difficultyDialog.setHeaderText("Choisissez le niveau de difficulté du bot");
+            difficultyDialog.setContentText("Sélectionnez la difficulté de l'IA qui contrôlera le joueur 2.");
+            
+            // Personnaliser les boutons
+            ButtonType easyButton = new ButtonType("Facile");
+            ButtonType mediumButton = new ButtonType("Moyen");
+            ButtonType hardButton = new ButtonType("Difficile");
+            ButtonType cancelButton = new ButtonType("Annuler", ButtonType.CANCEL.getButtonData());
+            
+            difficultyDialog.getButtonTypes().setAll(easyButton, mediumButton, hardButton, cancelButton);
+            
+            // Styliser la boîte de dialogue
+            DialogPane dialogPane = difficultyDialog.getDialogPane();
+            dialogPane.getStyleClass().add("custom-dialog");
+            
+            // Appliquer le style CSS
+            Scene scene = dialogPane.getScene();
+            if (scene != null) {
+                scene.getStylesheets().add(getClass().getResource("/com/example/bomberman/view/game-styles.css").toExternalForm());
+            }
+            
+            // Styliser les boutons individuellement
+            Button easyBtn = (Button) dialogPane.lookupButton(easyButton);
+            if (easyBtn != null) {
+                easyBtn.getStyleClass().add("easy-button");
+                easyBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+            }
+            
+            Button mediumBtn = (Button) dialogPane.lookupButton(mediumButton);
+            if (mediumBtn != null) {
+                mediumBtn.getStyleClass().add("medium-button");
+                mediumBtn.setStyle("-fx-background-color: #FFC107; -fx-text-fill: white; -fx-font-weight: bold;");
+            }
+            
+            Button hardBtn = (Button) dialogPane.lookupButton(hardButton);
+            if (hardBtn != null) {
+                hardBtn.getStyleClass().add("hard-button");
+                hardBtn.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-weight: bold;");
+            }
+            
+            Button cancelBtn = (Button) dialogPane.lookupButton(cancelButton);
+            if (cancelBtn != null) {
+                cancelBtn.getStyleClass().add("cancel-button");
+                cancelBtn.setStyle("-fx-background-color: #9E9E9E; -fx-text-fill: white;");
+            }
+            
+            // Styliser le texte du dialogue
+            dialogPane.setStyle("-fx-background-color: #424242; -fx-text-fill: white;");
+            
+            // Styliser le texte d'en-tête
+            dialogPane.lookup(".header-panel").setStyle("-fx-background-color: #303030;");
+            dialogPane.lookup(".header-panel .label").setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+            
+            // Styliser le texte de contenu
+            dialogPane.lookup(".content.label").setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+            
+            // Attendre la réponse de l'utilisateur
+            Optional<ButtonType> result = difficultyDialog.showAndWait();
+            if (result.isPresent() && result.get() != cancelButton) {
+                // Déterminer le niveau de difficulté
+                int difficultyLevel = 2; // Moyen par défaut
+                if (result.get() == easyButton) {
+                    difficultyLevel = 1;
+                } else if (result.get() == hardButton) {
+                    difficultyLevel = 3;
+                }
+                
+                soundManager.stopBackgroundMusic();
 
-            // Fallback : lancer le jeu directement sans menu
+                // Charger la scène de jeu existante
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/game-view.fxml"));
+                Parent gameRoot = loader.load();
+                
+                // Récupérer le contrôleur et activer le mode bot avec la difficulté choisie
+                GameController gameController = loader.getController();
+                gameController.enableBotMode(difficultyLevel);
+
+                // Changer de scène
+                Stage stage = (Stage) vsBotButton.getScene().getWindow();
+                Scene gameScene = new Scene(gameRoot, 1000, 900); // Même taille que l'éditeur de niveau
+
+                // Charger le CSS du jeu
+                URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+                if (cssResource != null) {
+                    gameScene.getStylesheets().add(cssResource.toExternalForm());
+                }
+
+                stage.setScene(gameScene);
+                stage.setTitle("Super Bomberman - VS Bot (" + 
+                               (difficultyLevel == 1 ? "Facile" : 
+                                difficultyLevel == 3 ? "Difficile" : "Moyen") + ")");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
             launchBasicGame();
         }
     }
@@ -137,6 +252,13 @@ public class MainMenuController implements Initializable {
             Parent root = loader.load();
 
             Scene gameScene = new Scene(root, 800, 600);
+            
+            // Charger le CSS du jeu
+            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            if (cssResource != null) {
+                gameScene.getStylesheets().add(cssResource.toExternalForm());
+            }
+            
             gameStage.setScene(gameScene);
             gameStage.setTitle("Super Bomberman");
             gameStage.show();
@@ -156,40 +278,34 @@ public class MainMenuController implements Initializable {
     @FXML
     private void openSettings() {
         try {
-            // Créer une nouvelle fenêtre pour les paramètres
+            // Charger la vue des paramètres
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/bomberman/view/settings-view.fxml"));
             Parent settingsRoot = loader.load();
             
             // Créer une nouvelle scène
             Scene settingsScene = new Scene(settingsRoot, 600, 500);
             
-            // Appliquer le CSS si disponible
-            try {
-                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
-                if (cssResource != null) {
-                    settingsScene.getStylesheets().add(cssResource.toExternalForm());
-                }
-            } catch (Exception cssError) {
-                System.out.println("CSS non trouvé pour les paramètres, continuation sans styles");
-                cssError.printStackTrace();
+            // Appliquer le CSS du jeu
+            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            if (cssResource != null) {
+                settingsScene.getStylesheets().add(cssResource.toExternalForm());
             }
             
             // Créer une nouvelle fenêtre
             Stage settingsStage = new Stage();
             settingsStage.setTitle("Paramètres - Super Bomberman");
             settingsStage.setScene(settingsScene);
-            settingsStage.setResizable(false);
+            settingsStage.setResizable(true);
             
             // Afficher la fenêtre modale (bloque l'interaction avec la fenêtre principale)
             settingsStage.initOwner((Stage) settingsButton.getScene().getWindow());
             settingsStage.showAndWait();
             
             // Rafraîchir les paramètres audio après fermeture
-            soundManager.playBackgroundMusic("/sounds/menu_music.mp3");
+            soundManager.playBackgroundMusic("menu_music");
             
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger l'interface des paramètres.", Alert.AlertType.ERROR);
         }
     }
 
@@ -207,17 +323,12 @@ public class MainMenuController implements Initializable {
 
             // Changer de scène
             Stage stage = (Stage) levelEditorButton.getScene().getWindow();
-            Scene editorScene = new Scene(editorRoot, 800, 600);
+            Scene editorScene = new Scene(editorRoot, 1000, 900);
 
-            // Charger le CSS s'il existe
-            try {
-                var cssResource = getClass().getResource("/com/example/bomberman/style.css");
-                if (cssResource != null) {
-                    editorScene.getStylesheets().add(cssResource.toExternalForm());
-                }
-            } catch (Exception cssError) {
-                System.out.println("CSS non trouvé, continuation sans styles");
-                cssError.printStackTrace();
+            // Charger le CSS du jeu
+            URL cssResource = getClass().getResource("/com/example/bomberman/view/game-styles.css");
+            if (cssResource != null) {
+                editorScene.getStylesheets().add(cssResource.toExternalForm());
             }
 
             stage.setScene(editorScene);
@@ -227,7 +338,6 @@ public class MainMenuController implements Initializable {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de charger l'éditeur de niveaux.", Alert.AlertType.ERROR);
         }
     }
 
@@ -236,14 +346,7 @@ public class MainMenuController implements Initializable {
      */
     @FXML
     private void quitGame() {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Quitter");
-        confirmAlert.setHeaderText("Voulez-vous vraiment quitter le jeu ?");
-        confirmAlert.setContentText("Toute progression non sauvegardée sera perdue.");
-
-        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            Platform.exit();
-        }
+        Platform.exit();
     }
 
     /**
@@ -267,10 +370,10 @@ public class MainMenuController implements Initializable {
         // Arrêter toute musique en cours
         soundManager.stopBackgroundMusic();
         
-        // Réinitialiser les composants
+        // Réinitialiser les composants et démarrer la musique
+        startMenuMusic();
         initializeComponents();
         setupBackground();
-        startMenuMusic();
         
         isInitialized = true;
     }

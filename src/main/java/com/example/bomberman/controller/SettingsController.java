@@ -27,6 +27,13 @@ public class SettingsController implements Initializable {
     private boolean initialMusicEnabled;
     private double initialSoundVolume;
     private double initialMusicVolume;
+    
+    // Pour éviter de jouer le son trop fréquemment
+    private long lastSoundPlayTime = 0;
+    private static final long SOUND_PLAY_DELAY = 200; // 200ms entre les sons
+
+    // Flag pour éviter de jouer des sons lors de l'initialisation
+    private boolean isInitializing = true;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -55,6 +62,13 @@ public class SettingsController implements Initializable {
             effectsVolumeLabel.setText(String.format("%.0f%%", newVal.doubleValue()));
             soundManager.setSoundVolume(volume);
             userPreferences.setSoundVolume(volume);
+            
+            // Jouer un son pour tester le volume des effets
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastSoundPlayTime > SOUND_PLAY_DELAY && soundManager.isSoundEnabled()) {
+                soundManager.playSound("powerup_collect");
+                lastSoundPlayTime = currentTime;
+            }
         });
         
         musicVolumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -71,6 +85,9 @@ public class SettingsController implements Initializable {
             userPreferences.setSoundEnabled(newVal);
             if (!newVal) {
                 soundManager.stopAllSounds();
+            } else if (!isInitializing) {
+                // Jouer un son de test seulement si ce n'est pas l'initialisation
+                soundManager.playSound("powerup_collect");
             }
         });
 
@@ -79,8 +96,8 @@ public class SettingsController implements Initializable {
             userPreferences.setMusicEnabled(newVal);
             if (!newVal) {
                 soundManager.stopBackgroundMusic();
-            } else if (oldVal != newVal) {
-                // Ne jouer la musique que si l'état a changé
+            } else if (oldVal != newVal && !isInitializing) {
+                // Ne jouer la musique que si l'état a changé et ce n'est pas l'initialisation
                 soundManager.playBackgroundMusic("menu_music");
             }
         });
@@ -109,19 +126,15 @@ public class SettingsController implements Initializable {
         soundManager.setMusicEnabled(musicEnabled);
         soundManager.setSoundVolume(soundVolume);
         soundManager.setMusicVolume(musicVolume);
+        
+        // Désactiver le flag d'initialisation
+        isInitializing = false;
     }
 
     private void handleSave() {
         // Les paramètres sont déjà sauvegardés dans UserPreferences via les listeners
         // On applique les préférences pour s'assurer que tout est cohérent
         userPreferences.applyPreferences();
-        
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Paramètres");
-        alert.setHeaderText(null);
-        alert.setContentText("Les paramètres ont été sauvegardés avec succès.");
-        alert.showAndWait();
-        
         closeWindow();
     }
 
@@ -138,12 +151,6 @@ public class SettingsController implements Initializable {
         userPreferences.setSoundVolume(initialSoundVolume);
         userPreferences.setMusicVolume(initialMusicVolume);
         userPreferences.applyPreferences();
-        
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Paramètres");
-        alert.setHeaderText(null);
-        alert.setContentText("Les modifications ont été annulées.");
-        alert.showAndWait();
         
         closeWindow();
     }
